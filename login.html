@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family:Arial;text-align:center;padding:40px">
+  <h2>Login Dashboard Monitoring</h2>
+  <button onclick="login()">Masuk Dashboard</button>
+
+  <script>
+    function login() {
+      google.script.run.withSuccessHandler(res => {
+        if (res.status === "success") {
+          google.script.run.withSuccessHandler(html => {
+            document.open();
+            document.write(html);
+            document.close();
+          }).loadDashboard();
+        } else {
+          alert(res.message);
+        }
+      }).checkLogin();
+    }
+  </script>
+</body>
+</html>
