@@ -1,0 +1,378 @@
+
+<div id="section-dashboard">
+  <div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #0984e3 0%, #74b9ff 100%); color: white; border-radius: 15px;">
+      <div class="card-body text-center py-3">
+        <div class="mb-2" style="background: rgba(255,255,255,0.2); width: 45px; height: 45px; line-height: 45px; border-radius: 12px; margin: 0 auto;">
+          <i class="bi bi-people-fill fs-4"></i>
+        </div>
+        <h6 class="text-uppercase fw-bold mb-1" style="font-size: 10px; letter-spacing: 1px; opacity: 0.9;">Total Responden</h6>
+        <h2 id="m-total" class="fw-bold mb-0" style="text-shadow: 0 2px 4px rgba(0,0,0,0.2);">0</h2>
+        <small style="font-size: 9px; opacity: 0.8;">Data Terkumpul</small>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="row g-2 h-100">
+      <div class="col-6">
+        <div class="card status-card border-0 shadow-sm h-100" onclick="showPetugasList('aktif')" style="cursor: pointer; background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); color: white; border-radius: 15px;">
+          <div class="card-body text-center py-3 px-1">
+            <i class="bi bi-person-check-fill fs-5 mb-1 d-block"></i>
+            <h6 class="fw-bold mb-1" style="font-size: 9px;">PCL AKTIF</h6>
+            <h3 id="m-aktif" class="fw-bold mb-0">0</h3>
+            <small class="d-block mt-1" style="font-size: 8px; font-weight: 500;">KLIK DETAIL <i class="bi bi-arrow-right-short"></i></small>
+          </div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="card status-card border-0 shadow-sm h-100" onclick="showPetugasList('belum')" style="cursor: pointer; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border-radius: 15px;">
+          <div class="card-body text-center py-3 px-1">
+            <i class="bi bi-person-x-fill fs-5 mb-1 d-block"></i>
+            <h6 class="fw-bold mb-1" style="font-size: 9px;">BELUM AKTIF</h6>
+            <h3 id="m-belum-aktif" class="fw-bold mb-0">0</h3>
+            <small class="d-block mt-1" style="font-size: 8px; font-weight: 500;">KLIK DETAIL <i class="bi bi-arrow-right-short"></i></small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); color: white; border-radius: 15px;">
+      <div class="card-body text-center py-3">
+        <div class="mb-2" style="background: rgba(255,255,255,0.2); width: 45px; height: 45px; line-height: 45px; border-radius: 12px; margin: 0 auto;">
+          <i class="bi bi-graph-up-arrow fs-4"></i>
+        </div>
+        <h6 class="text-uppercase fw-bold mb-1" style="font-size: 10px; letter-spacing: 1px; opacity: 0.9;">Progress Target</h6>
+        <h2 id="m-persen" class="fw-bold mb-0" style="text-shadow: 0 2px 4px rgba(0,0,0,0.2);">0%</h2>
+        <div class="progress mt-2" style="height: 6px; background: rgba(255,255,255,0.3); border-radius: 10px;">
+          <div id="m-progress-bar" class="progress-bar bg-white" role="progressbar" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%); color: white; border-radius: 15px;">
+      <div class="card-body text-center py-3">
+        <div class="mb-2" style="background: rgba(255,255,255,0.2); width: 45px; height: 45px; line-height: 45px; border-radius: 12px; margin: 0 auto;">
+          <i class="bi bi-stopwatch-fill fs-4"></i>
+        </div>
+        <h6 class="text-uppercase fw-bold mb-1" style="font-size: 10px; letter-spacing: 1px; opacity: 0.9;">Rata-rata Durasi</h6>
+        <h2 id="m-durasi" class="fw-bold mb-0" style="text-shadow: 0 2px 4px rgba(0,0,0,0.2);">0</h2>
+        <small style="font-size: 9px; opacity: 0.8;">Waktu per Responden</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <div class="card p-3 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="fw-bold">Peta Monitoring Spasial</h6>
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-primary active" id="btn-marker" onclick="toggleMapMode('marker')">Titik Lokasi</button>
+            <button class="btn btn-outline-primary" id="btn-heat" onclick="toggleMapMode('heat')">Peta Kecamatan</button>
+          </div>
+        </div>
+        <div id="map" style="height: 720px; border-radius: 8px;"></div>
+      </div>
+    </div>
+    
+    <div class="col-md-4">
+      <div class="row mb-4"><div class="card p-3 shadow-sm"><h6>Kecamatan</h6><div style="height:200px"><canvas id="chartKec"></canvas></div></div></div>
+      <div class="row mb-4"><div class="card p-3 shadow-sm"><h6>Produktivitas Jam</h6><div style="height:200px"><canvas id="chartHourly"></canvas></div></div></div>
+      <div class="row mb-4"><div class="card p-3 shadow-sm"><h6>Trend Harian</h6><div style="height:200px"><canvas id="chartDaily"></canvas></div></div></div>
+    </div>  
+  </div>
+
+  <div class="row mb-4">
+  <div class="col-md-12">
+    <div class="card p-3 shadow-sm" style="min-height: 565px;">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="fw-bold mb-0">
+          <i class="bi bi-table me-1 text-primary"></i> Daftar Responden Terakhir
+        </h6>
+        <span class="badge bg-secondary" id="totalRespondenBadge">0 data</span>
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col-md-6">
+          <input type="text" id="tableSearch" class="form-control form-control-sm" placeholder="🔍 Cari nama/kecamatan/KRT...">
+        </div>
+        <div class="col-md-3">
+          <select id="filterStatus" class="form-select form-select-sm">
+            <option value="">Semua Status Lokasi</option>
+            <option value="valid">✅ Lokasi Valid</option>
+            <option value="invalid">❌ Luar Wilayah</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select id="filterVerif" class="form-select form-select-sm">
+            <option value="">Semua Verifikasi</option>
+            <option value="RELEVAN">✅ Relevan</option>
+            <option value="DITOLAK">❌ Ditolak</option>
+            <option value="">⏳ Belum</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-responsive" style="max-height: 480px; overflow-y: auto;">
+        <table class="table table-sm table-hover align-middle" style="font-size: 11px;" id="mainRespondentTable">
+          <thead class="sticky-top" style="background: #044b94; color: white;">
+            <tr>
+              <th class="ps-2" style="min-width:90px;">📅 Tanggal & Jam</th>
+              <th style="min-width:100px;">👤 Petugas (PCL)</th>
+              <th style="min-width:110px;">🏠 KRT</th>
+              <th style="min-width:80px;">📍 Kecamatan</th>
+              <th style="min-width:80px;">🏘️ Desa / SLS</th>
+              <th class="text-center" style="min-width:70px;">⏱️ Durasi</th>
+              <th class="text-center" style="min-width:70px;">💰 Ekonomi</th>
+              <th class="text-center" style="min-width:70px;">📌 Lokasi</th>
+              <th class="text-center" style="min-width:70px;">✅ Verif</th>
+            </tr>
+          </thead>
+          <tbody id="sideTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalPetugas" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content" style="border-radius: 15px;">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold" id="modalStaffTitle">Daftar Petugas</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <table class="table table-hover mb-0" style="font-size: 13px;">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">Nama PCL</th>
+              <th>PML</th>
+              <th class="text-center">Status</th>
+            </tr>
+          </thead>
+          <tbody id="staffStatusBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+  let map, markerLayer, geoJsonLayer;
+  let chartKec, chartHourly, chartDaily;
+  let currentStaffData = []; 
+  const GEOJSON_URL = 'https://raw.githubusercontent.com/anshori/geojson-bojonegoro/master/bojonegoro_kec.json'; 
+
+  // Fungsi Formatter Durasi (Jam Menit Detik)
+  function formatDurasi(detik) {
+    if (!detik || detik === 0 || isNaN(detik)) return "0s";
+    const jam = Math.floor(detik / 3600);
+    const menit = Math.floor((detik % 3600) / 60);
+    const sisaDetik = Math.round(detik % 60);
+    let hasil = "";
+    if (jam > 0) hasil += `${jam}j `;
+    if (menit > 0) hasil += `${menit}m `;
+    if (sisaDetik > 0 || hasil === "") hasil += `${sisaDetik}s`;
+    return hasil.trim();
+  }
+
+  window.renderDashboard = function(res) {
+    currentStaffData = res.staffStatus; 
+
+    // 1. Update Kartu Summary
+    document.getElementById('m-total').innerText = res.summary.total;
+    document.getElementById('m-aktif').innerText = res.summary.aktif;
+    document.getElementById('m-belum-aktif').innerText = (currentStaffData.length - res.summary.aktif);
+    document.getElementById('m-persen').innerText = res.summary.persen + '%';
+    document.getElementById('m-durasi').innerText = formatDurasi(res.summary.avgDurasi);
+
+    // 2. Inisialisasi Peta
+    if(!map) {
+      map = L.map('map').setView([-7.1509, 111.8817], 10);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+      markerLayer = L.layerGroup().addTo(map);
+
+      fetch(GEOJSON_URL)
+        .then(response => response.json())
+        .then(geoData => {
+          geoJsonLayer = L.geoJson(geoData, {
+            style: { color: "#000000", weight: 2, fillColor: "#ffffff", fillOpacity: 0.1 },
+            onEachFeature: (f, l) => l.bindTooltip(f.properties.KECAMATAN, {sticky: true})
+          });
+        });
+    }
+
+    // 3. Marker & Tabel Samping
+   // 3. Marker & Tabel Samping (VERSI BARU LENGKAP)
+markerLayer.clearLayers();
+let tableHtml = '';
+
+// Update badge total
+document.getElementById('totalRespondenBadge').innerText = res.rawTable.length + ' data';
+
+res.rawTable.forEach((p) => {
+  if (p.lat && p.lng) {
+    let color = p.isValid ? '#28a745' : '#dc3545';
+    let marker = L.circleMarker([p.lat, p.lng], {
+      radius: 7, fillColor: color, color: "#fff", weight: 1, fillOpacity: 0.8
+    }).bindPopup(`
+      <div style="min-width:220px; font-size:12px;">
+        <div class="text-center mb-2">
+          <img src="${p.foto}" style="width:100%; border-radius:5px; max-height:150px; object-fit:cover;">
+        </div>
+        <b style="font-size:14px">${p.nama}</b><br>
+        <small class="text-muted">📅 ${p.hari}, ${p.tanggal}</small><br>
+        <small class="text-muted">🕐 ${p.jamMulai} → ${p.jamSelesai} (${formatDurasi(p.durasi)})</small>
+        <hr style="margin:5px 0">
+        <b>KRT:</b> ${p.krt}<br>
+        <b>Pendidikan:</b> ${p.pendidikan}<br>
+        <b>Pekerjaan:</b> ${p.pekerjaan ? p.pekerjaan.substring(0,40)+'...' : '-'}<br>
+        <b>Jml ART:</b> ${p.jumlahART} orang<br>
+        <b>Wilayah:</b> ${p.desa} — SLS ${p.sls}<br>
+        <b>Kecamatan:</b> ${p.kec}<br>
+        <b>Pendapatan:</b> Rp${(p.pendapatan || 0).toLocaleString('id-ID')}<br>
+        <b>Total Pengeluaran:</b> Rp${(p.pengeluaran || 0).toLocaleString('id-ID')}<br>
+        <b>Bansos:</b> ${p.bansos}<br>
+        <b>Status Lokasi:</b> <span style="color:${p.isValid?'green':'red'}">${p.isValid ? '✅ Sesuai' : '❌ Luar Wilayah'}</span><br>
+        ${p.catatan ? '<b>Catatan:</b> ' + p.catatan : ''}
+      </div>
+    `);
+    markerLayer.addLayer(marker);
+  }
+
+  // Badge Verifikasi
+  let verifBadge = '';
+  if (p.status === 'RELEVAN') verifBadge = '<span class="badge bg-success" style="font-size:9px;">RELEVAN</span>';
+  else if (p.status === 'DITOLAK') verifBadge = '<span class="badge bg-danger" style="font-size:9px;">DITOLAK</span>';
+  else verifBadge = '<span class="badge bg-secondary opacity-75" style="font-size:9px;">Belum</span>';
+
+  // Indikator anomali ekonomi
+  const isAnomali = p.pengeluaran > p.pendapatan;
+  const ekonomiHtml = isAnomali
+    ? `<span class="badge bg-warning text-dark" style="font-size:9px;" title="Pengeluaran > Pendapatan">⚠️ Defisit</span>`
+    : `<span class="badge bg-light text-success border" style="font-size:9px;">Normal</span>`;
+
+  tableHtml += `
+    <tr onclick="focusMap(${p.lat}, ${p.lng})" style="cursor:pointer;" 
+        data-valid="${p.isValid ? 'valid' : 'invalid'}" 
+        data-verif="${p.status || ''}">
+      <td class="ps-2">
+        <div class="fw-bold text-primary" style="font-size:10px;">${p.tanggal}</div>
+        <div class="text-muted" style="font-size:10px;">🕐 ${p.jamMulai}</div>
+        <div class="text-muted" style="font-size:9px;">${p.hari || ''}</div>
+      </td>
+      <td>
+        <div class="fw-bold text-dark">${p.nama}</div>
+        <div class="text-muted" style="font-size:10px;">${p.idPcl || ''}</div>
+      </td>
+      <td>
+        <div class="fw-bold">${p.krt}</div>
+        <div class="text-muted" style="font-size:9px;">${p.pendidikan || ''}</div>
+        <div class="text-muted" style="font-size:9px;">ART: ${p.jumlahART || 0} orang</div>
+      </td>
+      <td>
+        <div style="font-size:10px;">${p.kec || '-'}</div>
+      </td>
+      <td>
+        <div style="font-size:10px;">${p.desa || '-'}</div>
+        <div class="badge bg-light text-dark border" style="font-size:9px;">SLS ${p.sls || '-'}</div>
+      </td>
+      <td class="text-center">
+        <span class="badge bg-info text-dark" style="font-size:9px;">${formatDurasi(p.durasi)}</span>
+        <div class="text-muted" style="font-size:9px;">${p.jamMulai} – ${p.jamSelesai}</div>
+      </td>
+      <td class="text-center">${ekonomiHtml}</td>
+      <td class="text-center">
+        <span class="badge ${p.isValid ? 'bg-success' : 'bg-danger'}" style="font-size:9px;">
+          ${p.isValid ? '✅ Valid' : '❌ Luar'}
+        </span>
+      </td>
+      <td class="text-center">${verifBadge}</td>
+    </tr>`;
+});
+document.getElementById('sideTableBody').innerHTML = tableHtml;
+
+// Event filter Status Lokasi
+document.getElementById('filterStatus').addEventListener('change', applyTableFilter);
+document.getElementById('filterVerif').addEventListener('change', applyTableFilter);
+
+    // 4. Update Charts
+    updateChart('chartKec', 'bar', Object.keys(res.kecStats), Object.values(res.kecStats), '#3498db');
+    updateChart('chartHourly', 'line', Array.from({length: 24}, (_, i) => i+':00'), res.hourly, '#e67e22');
+    updateChart('chartDaily', 'line', res.dailyLabels, res.dailyValues, '#2ecc71');
+  };
+
+function applyTableFilter() {
+  const filterStatus = document.getElementById('filterStatus').value;
+  const filterVerif  = document.getElementById('filterVerif').value;
+  const searchVal    = document.getElementById('tableSearch').value.toLowerCase();
+
+  document.querySelectorAll('#sideTableBody tr').forEach(row => {
+    const matchStatus = !filterStatus || row.dataset.valid === filterStatus;
+    const matchVerif  = !filterVerif  || row.dataset.verif === filterVerif;
+    const matchSearch = !searchVal    || row.innerText.toLowerCase().includes(searchVal);
+    row.style.display = (matchStatus && matchVerif && matchSearch) ? '' : 'none';
+  });
+}
+  // Fungsi Filter Modal Petugas (Aktif / Belum Aktif)
+  function showPetugasList(tipe) {
+    const title = document.getElementById('modalStaffTitle');
+    const body = document.getElementById('staffStatusBody');
+    let html = '';
+    
+    // Filter data berdasarkan klik
+    const filtered = currentStaffData.filter(s => tipe === 'aktif' ? s.isAktif : !s.isAktif);
+    
+    title.innerText = tipe === 'aktif' ? "Petugas Sudah Aktif" : "Petugas Belum Aktif";
+    title.className = tipe === 'aktif' ? "modal-title fw-bold text-success" : "modal-title fw-bold text-danger";
+
+    if(filtered.length === 0) {
+      html = '<tr><td colspan="3" class="text-center py-3 text-muted">Tidak ada data</td></tr>';
+    } else {
+      filtered.forEach(s => {
+        const badge = s.isAktif ? '<span class="badge bg-success">Aktif</span>' : '<span class="badge bg-danger">Belum Aktif</span>';
+        html += `<tr>
+          <td class="ps-3 fw-bold">${s.nama}</td>
+          <td>${s.pml}</td>
+          <td class="text-center">${badge}</td>
+        </tr>`;
+      });
+    }
+    body.innerHTML = html;
+    new bootstrap.Modal(document.getElementById('modalPetugas')).show();
+  }
+
+  function toggleMapMode(mode) {
+    if (mode === 'heat') {
+      if (geoJsonLayer) geoJsonLayer.addTo(map);
+      document.getElementById('btn-heat').classList.add('active');
+      document.getElementById('btn-marker').classList.remove('active');
+    } else {
+      if (geoJsonLayer) map.removeLayer(geoJsonLayer);
+      document.getElementById('btn-marker').classList.add('active');
+      document.getElementById('btn-heat').classList.remove('active');
+    }
+  }
+
+  function focusMap(lat, lng) { if(lat && lng) map.setView([lat, lng], 16); }
+
+  function updateChart(id, type, labels, data, color) {
+    const ctx = document.getElementById(id);
+    if (window[id] instanceof Chart) window[id].destroy();
+    window[id] = new Chart(ctx, {
+      type: type,
+      data: { labels: labels, datasets: [{ label: 'Jumlah', data: data, backgroundColor: color, borderColor: color, tension: 0.3 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display: false} } }
+    });
+  }
+
+  // BARU:
+document.getElementById('tableSearch').addEventListener('keyup', applyTableFilter);
+</script>
