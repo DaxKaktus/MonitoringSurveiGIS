@@ -1,0 +1,674 @@
+<style>
+  /* 1. PERBAIKAN WARNA TEKS & TEMA BPS */
+  :root {
+    --bps-blue: #044b94;
+    --bps-orange: #f7941d;
+    --bps-green: #89c540;
+  }
+
+  .card h5, .card h6 { color: var(--bps-blue) !important; }
+  
+  /* Memastikan teks tabel berwarna hitam pekat agar terlihat */
+  .table { color: #212529 !important; }
+  .table b { color: var(--bps-blue) !important; }
+  .text-muted { color: #6c757d !important; }
+
+  /* Nav Pills Warna BPS */
+  .nav-pills .nav-link { color: var(--bps-blue); font-weight: 500; }
+  .nav-pills .nav-link.active { background-color: var(--bps-orange) !important; color: white !important; }
+
+  /* Header Tabel Hijau BPS */
+  .table-primary { background-color: var(--bps-green) !important; color: white !important; }
+  .table-dark { background-color: var(--bps-blue) !important; border: none; }
+</style>
+<div class="container-fluid py-3">
+
+  <div class="card p-4 shadow-sm border-0 mb-4">
+
+    <h5 class="fw-bold"><i class="bi bi-bar-chart-fill me-2 text-primary"></i> Dashboard Analisis Hasil Survei</h5>
+
+    <hr>
+
+    
+
+    <ul class="nav nav-pills mb-4" id="pills-tab" role="tablist">
+
+      <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-pekerjaan">Pekerjaan</button></li>
+
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-pendidikan">Pendidikan</button></li>
+
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-ekonomi">Ekonomi</button></li>
+
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-bansos">Bansos</button></li>
+
+      <li class="nav-item"><button class="nav-link text-danger fw-bold" data-bs-toggle="pill" data-bs-target="#tab-verifikasi">🔍 Verifikasi Data</button></li>
+
+    </ul>
+
+
+
+    <div class="tab-content" id="pills-tabContent">
+
+      <div class="tab-pane fade show active" id="tab-pekerjaan">
+
+        <div class="row align-items-center">
+
+          <div class="col-md-7"><div style="height:350px"><canvas id="chartPekerjaan"></canvas></div></div>
+
+          <div class="col-md-5"><div id="tablePekerjaan" class="table-responsive small"></div></div>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="tab-pane fade" id="tab-pendidikan">
+
+        <div class="row align-items-center">
+
+          <div class="col-md-7"><div style="height:350px"><canvas id="chartPendidikan"></canvas></div></div>
+
+          <div class="col-md-5"><div id="tablePendidikan" class="table-responsive small"></div></div>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="tab-pane fade" id="tab-ekonomi">
+
+        <div class="card border-0 bg-light p-3 mb-3 text-center">
+
+          <h6 class="small fw-bold mb-0">Grafik Perbandingan Pendapatan vs Pengeluaran</h6>
+
+        </div>
+
+        <div style="height:400px">
+
+          <canvas id="chartEkonomi"></canvas>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="tab-pane fade" id="tab-bansos">
+
+  <div class="row align-items-center">
+
+    <div class="col-md-7">
+
+      <div style="height:350px">
+
+        <canvas id="chartBansosBar"></canvas>
+
+      </div>
+
+    </div>
+
+    <div class="col-md-5">
+
+      <div id="tableBansos" class="table-responsive small"></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+      <div class="tab-pane fade" id="tab-verifikasi">
+
+  <div class="alert alert-info small d-flex align-items-center">
+
+    <i class="bi bi-info-circle-fill me-2"></i> 
+
+    Total Anomali (Defisit): <span id="anomaliCount" class="fw-bold ms-1">0</span>
+
+  </div>
+
+  <div class="table-responsive" style="max-height: 500px;">
+
+    <table class="table table-hover align-middle border">
+
+      <thead class="table-dark sticky-top">
+
+        <tr>
+
+          <th class="text-center" style="width: 15%;">Status</th>
+
+          <th style="width: 25%;">Responden / PCL</th>
+
+          <th class="text-center" style="width: 15%;">Bangunan</th>
+
+          <th style="width: 25%;">Analisis Ekonomi</th>
+
+          <th class="text-center" style="width: 20%;">Aksi</th>
+
+        </tr>
+
+      </thead>
+
+      <tbody id="verifikasiBody">
+
+        </tbody>
+
+    </table>
+
+  </div>
+
+</div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<div class="col-md-6">
+
+  <div class="card p-3 shadow-sm">
+
+    <h6 class="fw-bold text-center">Statistik Verifikasi Data</h6>
+
+    <div style="height:300px">
+
+      <canvas id="chartStatusVerif"></canvas>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+
+
+<script>
+
+// 1. Fungsi Helper untuk Chart & Tabel Kategori
+
+function processCategoryData(canvasId, tableId, rawData, labelName) {
+
+  const counts = {};
+
+  if (!rawData || rawData.length === 0) return;
+
+
+
+  rawData.forEach(val => { 
+
+    const key = (val && String(val).trim() !== "") ? String(val) : "Lainnya";
+
+    counts[key] = (counts[key] || 0) + 1; 
+
+  });
+
+  
+
+  const labels = Object.keys(counts);
+
+  const values = Object.values(counts);
+
+  const canvasEl = document.getElementById(canvasId);
+
+  if (!canvasEl) return;
+
+  
+
+  const ctx = canvasEl.getContext('2d');
+
+  if (window[canvasId + 'Chart']) window[canvasId + 'Chart'].destroy();
+
+  
+
+  window[canvasId + 'Chart'] = new Chart(ctx, {
+
+    type: 'pie',
+
+    data: {
+
+      labels: labels,
+
+      datasets: [{ 
+
+        data: values, 
+
+        backgroundColor: ['#3498db','#2ecc71','#f1c40f','#e74c3c','#9b59b6','#34495e','#1abc9c'] 
+
+      }]
+
+    },
+
+    options: { 
+
+      responsive: true,
+
+      maintainAspectRatio: false,
+
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }
+
+    }
+
+  });
+
+
+
+  let tableHtml = `<table class="table table-sm border table-bordered">
+
+    <thead class="table-light"><tr><th>${labelName}</th><th class="text-center">Jumlah</th></tr></thead><tbody>`;
+
+  labels.forEach((l, i) => {
+
+    tableHtml += `<tr><td>${l}</td><td class="text-center fw-bold">${values[i]}</td></tr>`;
+
+  });
+
+  tableHtml += `</tbody></table>`;
+
+  
+
+  const tableEl = document.getElementById(tableId);
+
+  if (tableEl) tableEl.innerHTML = tableHtml;
+
+}
+
+
+
+// 2. FUNGSI UTAMA RENDER ANALISIS
+
+function renderAnalisis(res) {
+
+  if (!res || !res.allResponses || res.allResponses.length === 0) return;
+
+  const data = res.allResponses;
+
+
+
+  try {
+
+    // 1. Render Pie Charts (Pekerjaan & Pendidikan)
+
+    processCategoryData('chartPekerjaan', 'tablePekerjaan', data.map(i => i.pekerjaan), 'Pekerjaan');
+
+    processCategoryData('chartPendidikan', 'tablePendidikan', data.map(i => i.pendidikan), 'Pendidikan');
+
+
+
+    // 2. LOGIKA KHUSUS BANSOS (HISTOGRAM MULTI-VALUE)
+
+    // --- 1. PROSES DATA BANSOS (LOGIKA MULTI-SELECTION) ---
+
+// --- LOGIKA PENGHITUNG BANSOS (VERSI AMAN / ANTI-ERROR) ---
+
+// --- 1. PROSES DATA BANSOS (MENGOLAH HASIL GFORM) ---
+const countsBansos = {
+  "PKH": 0, "BPNT": 0, "BLT-DD": 0, "PBI-JK": 0, 
+  "KIP": 0, "PIP": 0, "Gayatri": 0, "Lainnya": 0, "Tidak Ada": 0
+};
+
+data.forEach(p => {
+  // Ambil data dari kolom bansos
+  let val = p.bansos ? String(p.bansos).trim() : "";
+  
+  if (val !== "" && val !== "-") {
+    // MEMECAH KALIMAT: "PKH, BPNT" menjadi ["PKH", "BPNT"]
+    // Menggunakan regex /,/ agar lebih kuat membagi koma
+    const pilihan = val.split(',').map(item => item.trim().toUpperCase());
+    
+    pilihan.forEach(item => {
+      if (item.includes("PKH")) countsBansos["PKH"]++;
+      else if (item.includes("BPNT")) countsBansos["BPNT"]++;
+      else if (item.includes("BLT") || item.includes("DD")) countsBansos["BLT-DD"]++;
+      else if (item.includes("PBI") || item.includes("JK") || item.includes("KIS")) countsBansos["PBI-JK"]++;
+      else if (item.includes("KIP")) countsBansos["KIP"]++;
+      else if (item.includes("PIP")) countsBansos["PIP"]++;
+      else if (item.includes("GAYATRI")) countsBansos["Gayatri"]++;
+      else if (item.includes("TIDAK ADA") || item.includes("TIDAK ADA") || item === "TIDAK") {
+        countsBansos["Tidak Ada"]++;
+      } else {
+        countsBansos["Lainnya"]++;
+      }
+    });
+  } else {
+    countsBansos["Tidak Ada"]++;
+  }
+});
+
+// Urutkan data untuk grafik
+const sortedData = Object.entries(countsBansos).sort((a, b) => b[1] - a[1]);
+const labelsBansos = sortedData.map(d => d[0]);
+const valuesBansos = sortedData.map(d => d[1]);
+
+// --- 2. RENDER HISTOGRAM (BAR CHART) ---
+const ctxBansos = document.getElementById('chartBansosBar').getContext('2d');
+if (window.bansosChartInstance) window.bansosChartInstance.destroy();
+
+window.bansosChartInstance = new Chart(ctxBansos, {
+  type: 'bar', 
+  data: {
+    labels: labelsBansos,
+    datasets: [{
+      label: 'Jumlah Penerima',
+      data: valuesBansos,
+      backgroundColor: '#3498db',
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: 'y', // Membuat bar horizontal agar mudah dibaca
+    plugins: { legend: { display: false } },
+    scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
+  }
+});
+
+// --- 3. RENDER TABEL ---
+let bTable = `<table class="table table-sm table-bordered">
+    <thead class="table-primary text-center"><tr><th>Kategori</th><th>Total</th></tr></thead><tbody>`;
+sortedData.forEach(([label, val]) => {
+  if (val > 0) {
+    bTable += `<tr><td>${label}</td><td class="text-center fw-bold">${val}</td></tr>`;
+  }
+});
+bTable += `</tbody></table>`;
+document.getElementById('tableBansos').innerHTML = bTable;
+
+
+
+renderVerifChart(res);
+    // 4. Render Tabel Verifikasi (Loop data responden)
+
+    let verifHtml = '';
+
+    let anomali = 0;
+
+    data.forEach((p, index) => {
+
+      const isAnomali = parseFloat(p.pengeluaran) > parseFloat(p.pendapatan);
+
+      if (isAnomali) anomali++;
+
+      
+
+      const currentStatus = p.status || ""; 
+
+      const isDone = (currentStatus === 'RELEVAN' || currentStatus === 'DITOLAK'); 
+
+
+
+      verifHtml += `
+
+        <tr class="${isAnomali ? 'table-warning' : ''}">
+
+          <td class="text-center status-cell">
+
+            ${isDone 
+
+              ? `<span class="badge rounded-pill bg-success w-100"><i class="bi bi-check-circle-fill me-1"></i> Terverifikasi</span>` 
+
+              : `<span class="badge rounded-pill bg-secondary opacity-50 w-100"><i class="bi bi-clock-history me-1"></i> Belum</span>`
+
+            }
+
+          </td>
+
+          <td><b>${p.krt || 'Tanpa Nama'}</b><br><small>${p.namaPcl || '-'}</small></td>
+
+          <td class="text-center"><img src="${p.foto}" width="60" class="rounded shadow-sm"></td>
+
+          <td class="small">
+
+            <div class="text-success">In: Rp${Number(p.pendapatan).toLocaleString()}</div>
+
+            <div class="text-danger">Out: Rp${Number(p.pengeluaran).toLocaleString()}</div>
+
+          </td>
+
+          <td class="text-center aksi-cell">
+
+            ${isDone ? 
+
+              `<span class="badge ${currentStatus === 'RELEVAN' ? 'bg-success' : 'bg-danger'} px-3 py-2">${currentStatus}</span>` :
+
+              `<div class="btn-group btn-group-sm">
+
+                <button class="btn btn-outline-success" onclick="simpanVerif(${index}, 'RELEVAN', this)">Relevan</button>
+
+                <button class="btn btn-outline-danger" onclick="simpanVerif(${index}, 'DITOLAK', this)">Tolak</button>
+
+              </div>`
+
+            }
+
+          </td>
+
+        </tr>`;
+
+    });
+
+    
+
+    document.getElementById('verifikasiBody').innerHTML = verifHtml;
+
+    document.getElementById('anomaliCount').innerText = anomali;
+
+
+
+    // 5. Render Chart Ekonomi
+
+    renderEkonomiChart(data);
+
+
+
+  } catch (err) {
+
+    console.error("Error renderAnalisis:", err);
+
+  }
+
+}
+
+function renderEkonomiChart(data) {
+
+  const econCanvas = document.getElementById('chartEkonomi');
+
+  if (!econCanvas) return;
+
+  const ctxEkon = econCanvas.getContext('2d');
+
+  if (window.ekonChart) window.ekonChart.destroy();
+
+  window.ekonChart = new Chart(ctxEkon, {
+
+    type: 'line',
+
+    data: {
+
+      labels: data.map(i => i.krt ? String(i.krt).substring(0, 10) : 'KRT'),
+
+      datasets: [
+
+        { label: 'Pendapatan', data: data.map(i => i.pendapatan), borderColor: '#2ecc71', tension: 0.3 },
+
+        { label: 'Pengeluaran', data: data.map(i => i.pengeluaran), borderColor: '#e74c3c', tension: 0.3 }
+
+      ]
+
+    },
+
+    options: { responsive: true, maintainAspectRatio: false }
+
+  });
+
+}
+
+// 3. Fungsi Render Donut Chart (Verifikasi)
+
+function renderVerifChart(res) {
+
+  const canvasEl = document.getElementById('chartStatusVerif');
+
+  if (!canvasEl) return;
+
+  const ctx = canvasEl.getContext('2d');
+
+  if (window.vChart instanceof Chart) window.vChart.destroy();
+
+
+
+  window.vChart = new Chart(ctx, {
+
+    type: 'doughnut',
+
+    data: {
+
+      labels: ['Relevan', 'Ditolak', 'Belum Verifikasi'],
+
+      datasets: [{
+
+        data: [res.summary.relevan, res.summary.ditolak, res.summary.belumVerif],
+
+        backgroundColor: ['#2ecc71', '#e74c3c', '#bdc3c7'],
+
+        borderWidth: 2
+
+      }]
+
+    },
+
+    options: {
+
+      responsive: true,
+
+      maintainAspectRatio: false,
+
+      plugins: { legend: { position: 'bottom' } }
+
+    }
+
+  });
+
+}
+
+
+
+function simpanVerif(idx, status, btn) {
+
+  // 1. Ambil referensi baris tabel segera sebelum tombol dinonaktifkan
+
+  const row = btn.closest('tr');
+
+  btn.innerText = "...";
+
+  btn.disabled = true;
+
+  
+
+  // Pastikan globalData bisa diakses
+
+  if (typeof globalData === 'undefined') {
+
+    console.error("Variabel globalData tidak ditemukan!");
+
+    return;
+
+  }
+
+
+
+  const rowData = globalData.allResponses[idx];
+
+
+
+  google.script.run
+
+    .withSuccessHandler(() => {
+
+      // --- LANGKAH KRUSIAL: UPDATE MEMORI ---
+
+      // 2. Update status pada data spesifik di dalam array
+
+      globalData.allResponses[idx].status = status; 
+
+      
+
+      // 3. Update angka ringkasan untuk Chart Donut
+
+      if (globalData.summary.belumVerif > 0) globalData.summary.belumVerif--;
+
+      if (status === 'RELEVAN') {
+
+        globalData.summary.relevan++;
+
+      } else {
+
+        globalData.summary.ditolak++;
+
+      }
+
+
+
+      // --- LANGKAH UPDATE TAMPILAN (DOM) ---
+
+      // 4. Update Kolom Status (Kolom Pertama)
+
+      const statusCell = row.querySelector('.status-cell');
+
+      if (statusCell) {
+
+        statusCell.innerHTML = `<span class="badge rounded-pill bg-success w-100"><i class="bi bi-check-circle-fill me-1"></i> Terverifikasi</span>`;
+
+      }
+
+      
+
+      // 5. Update Kolom Aksi (Kolom Terakhir)
+
+      const aksiCell = row.querySelector('.aksi-cell');
+
+      if (aksiCell) {
+
+        const colorClass = status === 'RELEVAN' ? 'bg-success' : 'bg-danger';
+
+        aksiCell.innerHTML = `<span class="badge ${colorClass} px-3 py-2"><i class="bi bi-check-lg"></i> ${status}</span>`;
+
+      }
+
+
+
+      // 6. Update Chart Donut agar sinkron dengan data baru
+
+      renderVerifChart(globalData);
+
+      
+
+      Swal.fire({ 
+
+        icon: 'success', 
+
+        title: 'Berhasil', 
+
+        text: 'Data telah diverifikasi sebagai ' + status, 
+
+        timer: 1500, 
+
+        showConfirmButton: false 
+
+      });
+
+    })
+
+    .updateValidasiAdmin(rowData.rowNum, status);
+
+}
+
+</script>
+
