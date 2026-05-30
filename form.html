@@ -1,0 +1,640 @@
+
+
+<div class="container">
+  <div class="header">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/2/28/Lambang_Badan_Pusat_Statistik_%28BPS%29_Indonesia.svg" alt="Logo BPS">
+    <h2>Bolo Survei BPS</h2>
+    <div class="subtitle">Monitoring Petugas Lapangan - Kabupaten Bojonegoro</div>
+  </div>
+
+  <div id="successPage">
+    <div class="success-icon">✓</div>
+    <h2 style="color: #065f46; margin-bottom: 10px;">Berhasil Terkirim!</h2>
+    <p id="respondenTadi" style="color: #64748b; font-weight: 500;"></p>
+    <p style="font-size: 14px; color: #94a3b8;">Waktu pencacahan telah dicatat ke sistem.</p>
+    
+    <button onclick="siapRespondenBaru()" class="btn-next">
+      Responden Selanjutnya →
+    </button>
+  </div>
+<div id="statusBox" class="status-box status-error"></div>
+
+  <form id="surveyForm">
+    <div class="section">
+      <div class="section-title">Data Petugas</div>
+      <div class="form-group">
+      <label>Email Petugas</label>
+      <input type="email" id="emailManual" placeholder="contoh: petugas@gmail.com" required>
+      </div>
+      <div class="form-group">
+        <label>Nama PCL (Petugas)</label>
+        <select id="namaPetugas" required onchange="updateIdPetugas()">
+          <option value="">-- Memuat Data Petugas... --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>No PCL (ID)</label>
+        <input type="text" id="idPetugas" readonly placeholder="Terisi otomatis">
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Wilayah Tugas</div>
+      <div class="form-group">
+        <label>Kecamatan</label>
+        <select id="kecamatan" required onchange="updateWilayah()">
+          <option value="">-- Pilih Kecamatan --</option>
+          <option value="BALEN">BALEN</option>
+          <option value="BAURENO">BAURENO</option>
+          <option value="BOJONEGORO">BOJONEGORO</option>
+          <option value="BUBULAN">BUBULAN</option>
+          <option value="DANDER">DANDER</option>
+          <option value="GONDANG">GONDANG</option>
+          <option value="KALITIDU">KALITIDU</option>
+          <option value="KANOR">KANOR</option>
+          <option value="KAPAS">KAPAS</option>
+          <option value="KASIMAN">KASIMAN</option>
+          <option value="KEDEWAN">KEDEWAN</option>
+          <option value="KEDUNGADEM">KEDUNGADEM</option>
+          <option value="KEPOH BARU">KEPOH BARU</option>
+          <option value="MALO">MALO</option>
+          <option value="MARGOMULYO">MARGOMULYO</option>
+          <option value="NGASEM">NGASEM</option>
+          <option value="NGRAHO">NGRAHO</option>
+          <option value="PADANGAN">PADANGAN</option>
+          <option value="PURWOSARI">PURWOSARI</option>
+          <option value="SEKAR">SEKAR</option>
+          <option value="SUGIHWARAS">SUGIHWARAS</option>
+          <option value="SUKOSEWU">SUKOSEWU</option>
+          <option value="SUMBERREJO">SUMBERREJO</option>
+          <option value="TAMBAKREJO">TAMBAKREJO</option>
+          <option value="TEMAYANG">TEMAYANG</option>
+          <option value="TRUCUK">TRUCUK</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Desa / Kelurahan</label>
+        <select id="wilayah" required onchange="getSlsOtomatis()">
+          <option value="">-- Pilih Desa --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Kode SLS</label>
+        <select id="sls" required onchange="updateKrtDariSls()">
+         <option value="">-- Pilih Desa dahulu --</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Data Rumah Tangga</div>
+      <div class="form-group">
+        <label>Nama KRT</label>
+        <select id="namaKRT" required>
+          <option value="">-- Pilih Desa & SLS dahulu --</option>
+        </select>
+      </div>
+      
+      <div style="display: flex; gap: 15px;">
+        <div class="form-group" style="flex: 1;">
+          <label>Pendidikan KRT</label>
+          <select id="pendidikanKRT" required>
+          <option value="">-- Pilih Pendidikan --</option>
+          <option value="Paket A">Paket A</option>
+          <option value="SD">SD</option>
+          <option value="MI">MI</option>
+          <option value="SPM/PDF Ula">SPM/PDF Ula</option>
+          <option value="Paket B">Paket B</option>
+          <option value="SMP">SMP</option>
+          <option value="MTs">MTs</option>
+          <option value="SPM/PDF Wustha">SPM/PDF Wustha</option>
+          <option value="Paket C">Paket C</option>
+          <option value="SMA">SMA</option>
+          <option value="MA">MA</option>
+          <option value="SMK">SMK</option>
+          <option value="MAK">MAK</option>
+          <option value="SPM/PDF Ulya">SPM/PDF Ulya</option>
+          <option value="D1/D2">D1/D2</option>
+          <option value="D3">D3</option>
+          <option value="D4">D4</option>
+          <option value="S1">S1</option>
+          <option value="Profesi">Profesi</option>
+          <option value="S2">S2</option><option value="S3">S3</option>
+          <option value="Tidak Sekolah">Tidak Sekolah</option>
+        </select>
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label>Jumlah ART</label>
+          <input type="number" id="jumlahART" placeholder="0" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Pekerjaan (Lapangan Usaha)</label>
+        <select id="pekerjaanKRT" required>
+          <option value="">-- Pilih Lapangan Usaha --</option>
+          <option value="0. Tidak Bekerja">00. Tidak Bekerja</option>
+          <option value="01. Pertanian tanaman padi dan palawija">01. Pertanian tanaman padi dan palawija</option>
+          <option value="02. Hortikultura">02. Hortikultura</option>
+          <option value="03. Perkebunan">03. Perkebunan</option>
+          <option value="04. Perikanan">04. Perikanan</option>
+          <option value="05. Peternakan">05. Peternakan</option>
+          <option value="06. Kehutanan dan pertanian lainnya">06. Kehutanan dan pertanian lainnya</option>
+          <option value="07. Pertambangan dan penggalian">07. Pertambangan dan penggalian</option>
+          <option value="08. Industri pengolahan">08. Industri pengolahan</option>
+          <option value="09. Pengadaan listrik, gas, uap/air panas, dan udara dingin">09. Pengadaan listrik, gas, uap/air panas, dan udara dingin</option>
+          <option value="10. Pengelolaan air, pengelolaan air limbah, pengelolaan dan daur ulang sampah, dann aktivitas remediasi ">10. .Pengelolaan air, pengelolaan air limbah, pengelolaan dan 
+          daur ulang sampah, dan aktivitas remediasi </option>
+          <option value="11. Konstruksi">11. Konstruksi</option>
+          <option value="12. Perdagangan besar dan eceran, reparasi dan perawatan mobil dan sepeda motor">12. Perdagangan besar dan eceran, reparasi dan perawatan mobil dan sepeda motor</option>
+          <option value="13. Pengangkutan dan pergudangan">13. Pengangkutan dan pergudangan</option>
+          <option value="14. Penyediaan akomodasi dan penyediaan makan minum">14. Penyediaan akomodasi dan penyediaan makan minum</option>
+          <option value="15. Informasi dan komunikasi">15. Informasi dan komunikasi</option>
+          <option value="16. Aktivitas keuangan dan asuransi">16. Aktivitas keuangan dan asuransi</option>
+          <option value="17. Real estat">17. Real estat</option>
+          <option value="18. Aktivitas profesional, ilmiah, dan teknis">18. Aktivitas profesional, ilmiah, dan teknis</option>
+          <option value="19. Aktivitas penyewaan dan sewa guna tanpa hak opsi, ketenagakerjaan, agen perjalanan, dan penunjang usaha lainnya">19. Aktivitas penyewaan dan sewa guna tanpa hak opsi, ketenagakerjaan, agen perjalanan, dan penunjang usaha lainnya</option>
+          <option value="20. Administrasi pemerintahan, pertahanan, dan jaminan sosial wajib">20. Administrasi pemerintahan, pertahanan, dan jaminan sosial wajib</option>
+          <option value="21. Pendidikan">21. Pendidikan</option>
+          <option value="22. Aktivitas kesehatan manusia dan aktivitas sosial">22. Aktivitas kesehatan manusia dan aktivitas sosial</option>
+          <option value="23. Kesenian, hiburan, dan rekreasi">23. Kesenian, hiburan, dan rekreasi</option>
+          <option value="24. Aktivitas jasa lainnya">24. Aktivitas jasa lainnya</option>
+          <option value="25. Aktivitas rumah tangga sebagai pemberi kerja">25. Aktivitas rumah tangga sebagai pemberi kerja</option>
+          <option value="26. Aktivitas badan internasional dan ekstra internasional lainnya">26. Aktivitas badan internasional dan ekstra internasional lainnya</option>
+      </select>
+      </div>
+
+      <div class="form-group">
+        <label>Pendapatan (Rp)</label>
+        <input type="number" id="pendapatan" placeholder="Contoh: 3000000" required>
+      </div>
+      
+      <div style="display: flex; gap: 15px;">
+        <div class="form-group" style="flex: 1;">
+          <label>Pengeluaran Makan</label>
+          <input type="number" id="makan" placeholder="Rp" required>
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label>Non-Makan</label>
+          <input type="number" id="nonMakan" placeholder="Rp" required>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Bansos & Dokumentasi</div>
+      <div class="form-group">
+        <label>Jenis Bansos yang Diterima:</label>
+        <div class="bansos-grid">
+          <label class="check-item"><input type="checkbox" name="bansos" value="Tidak Ada"> Tidak Ada</label>
+          <label class="check-item"><input type="checkbox" name="bansos" value="PKH"> PKH</label>
+          <label class="check-item"><input type="checkbox" name="bansos" value="BPNT"> BPNT</label>
+          <label class="check-item"><input type="checkbox" name="bansos" value="BLT-DD"> BLT-DD</label>
+          <label class="check-item"><input type="checkbox" name="bansos" value="PBI-JK"> PBI-JK</label>
+          <label class="check-item"><input type="checkbox" name="bansos" value="KIP"> KIP</label>
+          <label class="check-item"><input type="checkbox" name="bansos" value="PIP"> PIP</label>
+          <label class="check-item"><input type="checkbox" name="bansos" value="Gayatri"> Gayatri</label>
+          <label class="check-item"><input type="checkbox" name="bansos" value="Lainnya"> Lainnya</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Foto Rumah (Tampak Depan)</label>
+        <input type="file" id="fotoRumah" accept="image/*" onchange="previewImage(this)" required>
+        <div id="preview-container">
+          <img id="preview-img" src="" alt="Preview">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Catatan Kendala</label>
+        <textarea id="catatan" rows="2" placeholder="Isi jika ada kendala lapangan..."></textarea>
+      </div>
+    </div>
+
+    <input type="hidden" id="latitude">
+    <input type="hidden" id="longitude">
+    <input type="hidden" id="startTime" name="startTime">
+
+    <button type="submit" id="submitBtn" disabled>Menunggu GPS Akurat...</button>
+    <div id="loader" class="loading-overlay">
+      <div style="margin-bottom: 10px;">⏳</div>
+      Memproses data & unggah foto...
+    </div>
+    <button onclick="bukaHalaman('halamanMenu')" style="background: #64748b; margin-top: 20px; box-shadow: none;">← Batal & Kembali</button>
+  </form>
+</div>
+
+<script>
+  const mappingWilayah = {
+    "BALEN": ["POH BOGO", "MULYOAGUNG", "BULU", "KEDUNGBONDO", "PENGANTEN", "SIDOBANDUNG"],
+    "BAURENO": ["SEMBUNGLOR", "BLONGSONG", "NGEMPLAK", "GUNUNGSARI", "KARANGDAYU"],
+    "BOJONEGORO": ["SUMBANG", "LEDOK KULON", "MULYOAGUNG", "NGROWO", "SEMANDING"],
+    "BUBULAN": ["NGOROGUNUNG"],
+    "DANDER": ["DANDER", "KARANGSONO", "SUMBER AGUNG", "SUMBER ARUM"],
+    "GONDANG": ["KRONDONAN"],
+    "KALITIDU": ["KALITIDU", "MOJO", "SUMENGKO"],
+    "KANOR": ["SIMOREJO", "SUMBERWANGI"],
+    "KAPAS": ["BAKALAN", "TIKUSAN", "BANGILAN"],
+    "KASIMAN": ["BESAH", "KASIMAN"],
+    "KEDEWAN": ["HARGOMULYO"],
+    "KEDUNGADEM": ["BALONGCABE", "KEDUNGADEM", "KEDUNGREJO", "KENDUNG", "TONDOMULO"],
+    "KEPOH BARU": ["PEJOK", "NGRANGGON ANYAR", "SIDOMUKTI", "SUGIHWARAS", "WORO"],
+    "MALO": ["MALO", "TAMBAKROMO"],
+    "MARGOMULYO": ["SUMBEREJO"],
+    "NGASEM": ["BARENG", "DUKOHKIDUL", "JELU", "NGASEM", "MEDIYUNAN", "SETREN"],
+    "NGRAHO": ["TAPELAN", "NGANTI"],
+    "PADANGAN": ["NGASINAN", "NGRADIN"],
+    "PURWOSARI": ["DONAN", "KUNIRAN", "KALIOMBO"],
+    "SEKAR": ["SEKAR", "BARENG"],
+    "SUGIHWARAS": ["GENJOR", "SUGIHWARAS", "ALASGUNG", "BULU"],
+    "SUKOSEWU": ["PURWOASRI", "SITIAJI", "SUMBEREJO KIDUL"],
+    "SUMBERREJO": ["NGAMPAL", "SUMBERREJO", "KARANGDOWO", "SUMBERHARJO"],
+    "TAMBAKREJO": ["NAPIS", "BAKALAN", "GADING"],
+    "TEMAYANG": ["PAPRINGIN", "JONO", "KEDUNGSUMBER", "NGUJUNG"],
+    "TRUCUK": ["BANJARSARI"]
+    // Tambahkan list desa lainnya sesuai kecamatan
+  };
+
+  let listPetugas = [];
+
+  window.onload = function() {
+  const draftLama = localStorage.getItem('bps_survey_draft');
+  
+  if (draftLama) {
+    const d = JSON.parse(draftLama);
+    
+    // Pulihkan data identitas & metadata
+    document.getElementById('emailManual').value = d.emailManual || "";
+    document.getElementById('startTime').value = d.startTime || new Date().toISOString();
+    document.getElementById('latitude').value = d.latitude || "";
+    document.getElementById('longitude').value = d.longitude || "";
+    
+    // Pulihkan data kuesioner
+    document.getElementById('jumlahART').value = d.jumlahART || "";
+    document.getElementById('pendapatan').value = d.pendapatan || "";
+    document.getElementById('makan').value = d.makan || "";
+    document.getElementById('nonMakan').value = d.nonMakan || "";
+    document.getElementById('catatan').value = d.catatan || "";
+    
+    // Catatan: Untuk dropdown (Petugas, Kec, Desa, SLS) akan terisi otomatis 
+    // setelah fungsi loadPetugas() selesai memuat data dari server.
+    console.log("Data draft berhasil dipulihkan dari memori.");
+  } else {
+    // Jika tidak ada draft, set waktu mulai pengerjaan baru
+    document.getElementById('startTime').value = new Date().toISOString();
+  }
+
+  loadPetugas(); // Fungsi asli [cite: 307]
+  initGPS();     // Fungsi asli [cite: 304]
+};
+
+// Fungsi Baru: Menyiapkan Form untuk Responden Berikutnya
+  function siapRespondenBaru() {
+    const box = document.getElementById('statusBox');
+    if (box) {
+      box.style.display = 'none';
+      box.innerText = ''; 
+    }
+
+    // 1. Catat START TIME baru tepat saat tombol diklik (Penting!)
+    document.getElementById('startTime').value = new Date().toISOString();
+    
+    // 2. Sembunyikan Success Page, Tampilkan kembali form
+    document.getElementById('successPage').style.display = 'none';
+    document.getElementById('surveyForm').style.display = 'block';
+    
+    // 3. Scroll kembali ke atas
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // 4. Refresh GPS agar lokasi responden baru lebih akurat
+    initGPS();
+  }
+
+  function initGPS() {
+  const btn = document.getElementById('submitBtn');
+  
+  if (!navigator.geolocation) {
+    alert("Browser Anda tidak mendukung GPS.");
+    return;
+  }
+
+  const options = {
+    enableHighAccuracy: true, // Mencoba GPS Satelit
+    timeout: 10000,           // Menunggu maksimal 10 detik
+    maximumAge: 0
+  };
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      document.getElementById('latitude').value = pos.coords.latitude;
+      document.getElementById('longitude').value = pos.coords.longitude;
+      btn.disabled = false;
+      btn.innerText = "Kirim Data Survei";
+      btn.style.background = "#2563eb"; 
+    },
+    (err) => {
+      console.warn(`Kesalahan GPS: ${err.message}`);
+      
+      // Jika error karena Timeout, coba lagi dengan akurasi rendah (lebih cepat)
+      if (err.code === 3) {
+        btn.innerText = "Mencoba GPS Akurasi Rendah...";
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            document.getElementById('latitude').value = pos.coords.latitude;
+            document.getElementById('longitude').value = pos.coords.longitude;
+            btn.disabled = false;
+            btn.innerText = "Kirim Data Survei (Akurasi Rendah)";
+          },
+          () => alert("GPS Gagal total. Silakan refresh atau pindah ke tempat terbuka."),
+          { enableHighAccuracy: false, timeout: 5000 }
+        );
+      } else {
+        alert("Akses Lokasi Ditolak. Harap izinkan GPS di pengaturan browser.");
+      }
+    },
+    options
+  );
+}
+
+  function loadPetugas() {
+  const select = document.getElementById('namaPetugas');
+  google.script.run
+    .withSuccessHandler(function(data) {
+      if (!data || data.length === 0) {
+        select.innerHTML = '<option value="">-- Data Tidak Dapat Dimuat, Pastikan Koneksi Internet Anda Stabil --</option>';
+        return;
+      }
+      listPetugas = data;
+      
+      // Mengambil daftar nama unik saja untuk dropdown petugas
+      let namaUnik = [...new Set(data.map(p => p.nama))];
+      
+      select.innerHTML = '<option value="">-- Pilih Nama PCL --</option>';
+      namaUnik.forEach(nama => {
+        let opt = document.createElement('option');
+        opt.value = opt.innerText = nama;
+        select.appendChild(opt);
+      });
+    })
+    .getDaftarPetugas();
+}
+  function updateIdPetugas() {
+  const nama = document.getElementById('namaPetugas').value;
+  const p = listPetugas.find(x => x.nama === nama );
+  
+  if (p) {
+    document.getElementById('idPetugas').value = p.id;
+    // Reset wilayah jika ganti petugas agar tidak salah data
+    document.getElementById('kecamatan').selectedIndex = 0;
+    document.getElementById('wilayah').innerHTML = '<option value="">-- Pilih Desa --</option>';
+    document.getElementById('sls').value = "";
+  }
+}
+
+  function updateWilayah() {
+    const kec = document.getElementById('kecamatan').value;
+    const desSel = document.getElementById('wilayah');
+    desSel.innerHTML = '<option value="">-- Pilih Desa --</option>';
+    if (mappingWilayah[kec]) {
+      mappingWilayah[kec].forEach(d => {
+        let opt = document.createElement('option');
+        opt.value = d;
+        opt.innerText = d;
+        desSel.appendChild(opt);
+      });
+    }
+    document.getElementById('sls').value = "";
+  document.getElementById('namaKRT').innerHTML = '<option value="">-- Pilih Desa dahulu --</option>';
+  }
+
+  // Fungsi pencarian SLS berdasarkan Nama DAN Desa
+// Fungsi pencarian SLS berdasarkan Nama DAN Desa
+function getSlsOtomatis() {
+  const nama = document.getElementById('namaPetugas').value;
+  const desa = document.getElementById('wilayah').value;
+  const slsSel = document.getElementById('sls');
+  slsSel.innerHTML = '<option value="">-- Pilih SLS --</option>';
+  
+  if (nama && desa) {
+    const matches = listPetugas.filter(p => 
+      p.nama.trim().toUpperCase() === nama.trim().toUpperCase() && 
+      p.desa.trim().toUpperCase() === desa.trim().toUpperCase()
+    );
+
+    if (matches.length > 0) {
+      // SLS tetap dibuat unik agar tidak muncul double jika baris KRT banyak
+      let slsUnik = [...new Set(matches.map(m => m.sls.toString().trim()))];
+      
+      slsUnik.forEach(s => {
+        let opt = document.createElement('option');
+        opt.value = opt.innerText = s;
+        slsSel.appendChild(opt);
+      });
+
+      if (slsUnik.length === 1) {
+        slsSel.value = slsUnik[0];
+        updateKrtDariSls();
+      }
+    }
+  }
+}
+   
+   // 2. Fungsi saat SLS dipilih atau terpilih otomatis
+function updateKrtDariSls() {
+  const kec = document.getElementById('kecamatan').value;
+  const desa = document.getElementById('wilayah').value;
+  const sls = document.getElementById('sls').value;
+  
+  if (kec && desa && sls) {
+    updateListKRT(kec, desa, sls);
+  }else {
+    document.getElementById('namaKRT').innerHTML = '<option value="">-- Pilih SLS dahulu --</option>';
+  }
+}
+
+// Fungsi untuk mengambil Nama KRT dari Spreadsheet
+function updateListKRT(kec, desa, sls) {
+  const krtSel = document.getElementById('namaKRT');
+  krtSel.innerHTML = '<option value="">-- Memuat Nama KRT... --</option>';
+
+  google.script.run
+    .withSuccessHandler(function(data) {
+      if (data && data.length > 0) {
+        krtSel.innerHTML = '<option value="">-- Pilih Nama KRT --</option>';
+        data.forEach(item => {
+          let opt = document.createElement('option');
+          opt.value = item.nama; 
+          opt.innerText = item.nama;
+          krtSel.appendChild(opt);
+        });
+      } else {
+        krtSel.innerHTML = '<option value="">-- Nama KRT tidak ditemukan --</option>';
+      }
+    })
+    .getDaftarPetugas(kec, desa, sls);
+}
+
+  function previewImage(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800; // Ukuran optimal
+          let width = img.width;
+          let height = img.height;
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataurl = canvas.toDataURL("image/jpeg", 0.7); // Kompresi 70%
+          document.getElementById('preview-img').src = dataurl;
+          document.getElementById('preview-container').style.display = 'block';
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+  document.getElementById('surveyForm').onsubmit = function(e) {
+    e.preventDefault();
+    const loader = document.getElementById('loader');
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    loader.style.display = 'block';
+
+    const file = document.getElementById('fotoRumah').files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = e => kirim(e.target.result);
+      reader.readAsDataURL(file);
+    } else {
+      kirim(null);
+    }
+  };
+  function kirim(base64) {
+    const loader = document.getElementById('loader');
+    const btn = document.getElementById('submitBtn');
+    const form = document.getElementById('surveyForm');
+    const successPage = document.getElementById('successPage');
+    const respondenTadi = document.getElementById('respondenTadi');
+
+    const bansos = Array.from(document.querySelectorAll('input[name="bansos"]:checked')).map(c => c.value).join(", ") || "Tidak Ada";
+    
+    const data = {
+    emailPetugas: document.getElementById('emailManual').value,
+    namaPetugas: document.getElementById('namaPetugas').value,
+    idPetugas: document.getElementById('idPetugas').value,
+    kecamatan: document.getElementById('kecamatan').value,
+    wilayah: document.getElementById('wilayah').value,
+    sls: document.getElementById('sls').value, // Pastikan SLS ikut terkirim
+    namaKRT: document.getElementById('namaKRT').value,
+    pendidikanKRT: document.getElementById('pendidikanKRT').value,
+    pekerjaanKRT: document.getElementById('pekerjaanKRT').value,
+    jumlahART: document.getElementById('jumlahART').value || 0,
+    pendapatan: document.getElementById('pendapatan').value || 0,
+    makan: document.getElementById('makan').value || 0,
+    nonMakan: document.getElementById('nonMakan').value || 0,
+    bansos: bansos,
+    catatan: document.getElementById('catatan').value,
+    latitude: document.getElementById('latitude').value,
+    longitude: document.getElementById('longitude').value,
+    startTime: document.getElementById('startTime').value,
+    fotoFile: base64
+  };
+
+    google.script.run.withSuccessHandler(res => {
+      // Sembunyikan loader
+        loader.style.display = 'none';
+        btn.disabled = false;
+        const box = document.getElementById('statusBox');
+        if(res.status === 'success') {
+          localStorage.removeItem('bps_survey_draft');
+
+          // 1. Sembunyikan Form
+          form.style.display = 'none';
+          
+          // 2. Tampilkan Halaman Sukses
+          successPage.style.display = 'block';
+          
+          // 3. Tampilkan nama responden yang baru diinput
+          if(respondenTadi) {
+            respondenTadi.innerText = "Responden: " + data.namaKRT;
+          }
+          
+          // 4. Reset Form agar bersih untuk input selanjutnya
+          form.reset();
+          document.getElementById('preview-container').style.display = 'none';
+          
+        } else {
+          box.style.display = 'block';
+        box.innerText = "⚠️ " + res.message;
+        
+        // Otomatis scroll ke atas agar petugas melihat peringatannya
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      })
+      .withFailureHandler(err => {
+        loader.style.display = 'none';
+        btn.disabled = false;
+        alert("Error Koneksi: " + err.message);
+      })
+      .submitForm(data);
+  }
+
+  document.addEventListener('input', function(e) {
+  if (e.target.closest('#surveyForm')) {
+    simpanDraft(); 
+  }
+});
+
+  // Fungsi untuk menyimpan seluruh data form ke memori lokal browser
+function simpanDraft() {
+  const form = document.getElementById('surveyForm');
+  if (!form) return;
+
+  const dataDraft = {
+    emailManual: document.getElementById('emailManual').value,
+    namaPetugas: document.getElementById('namaPetugas').value,
+    idPetugas: document.getElementById('idPetugas').value,
+    kecamatan: document.getElementById('kecamatan').value,
+    wilayah: document.getElementById('wilayah').value,
+    sls: document.getElementById('sls').value,
+    namaKRT: document.getElementById('namaKRT').value,
+    pendidikanKRT: document.getElementById('pendidikanKRT').value,
+    jumlahART: document.getElementById('jumlahART').value,
+    pekerjaanKRT: document.getElementById('pekerjaanKRT').value,
+    pendapatan: document.getElementById('pendapatan').value,
+    makan: document.getElementById('makan').value,
+    nonMakan: document.getElementById('nonMakan').value,
+    catatan: document.getElementById('catatan').value,
+    
+    // Metadata tetap disimpan agar durasi kerja akurat saat dipulihkan
+    startTime: document.getElementById('startTime').value,
+    latitude: document.getElementById('latitude').value,
+    longitude: document.getElementById('longitude').value
+  };
+
+  localStorage.setItem('bps_survey_draft', JSON.stringify(dataDraft));
+}
+
+// OTOMATISASI: Jalankan simpanDraft setiap kali ada input di form
+document.addEventListener('DOMContentLoaded', function() {
+  const formInputs = document.querySelectorAll('#surveyForm input, #surveyForm select, #surveyForm textarea');
+  formInputs.forEach(elemen => {
+    elemen.addEventListener('input', simpanDraft);
+  });
+});
+
+// Pasang pengintai (event listener) agar setiap inputan otomatis tersimpan
+document.querySelectorAll('input, select, textarea').forEach(elemen => {
+  elemen.addEventListener('input', simpanDraft);
+  elemen.addEventListener('change', simpanDraft);
+});
+  
+</script>
