@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolo Survei BPS</title>
+ 
+  <!-- Bootstrap & Icons (untuk Dashboard Admin) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Leaflet Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- DataTables -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+  <!-- SweetAlert2 -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+ 
+  <style>
+    /* =============================================
+       1. CSS VARIABLES & ROOT
+    ============================================= */
+    :root {
+      --bps-blue: #1e3a8a;
+      --bps-light-blue: #2563eb;
+      --bps-yellow: #facc15;
+      --sidebar-bg: #044b94;
+      --accent: #f7941d;
+      --success-bps: #89c540;
+      --light-bg: #f0f2f5;
+      --sidebar-width: 250px;
+    }
+ 
+    /* =============================================
+       2. BODY & BACKGROUND
+    ============================================= */
+    body {
+      font-family: 'Poppins', 'Segoe UI', sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(rgba(30, 58, 138, 0.6), rgba(0, 0, 0, 0.7)),
+                  url('https://images.unsplash.com/photo-1551288049-bbda48642a4c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+      background-size: cover;
+      background-attachment: fixed;
+      background-position: center;
+      transition: background 0.5s ease-in-out;
+      padding-bottom: 80px;
+    }
+ 
+    /* =============================================
+       3. HALAMAN SPA NAVIGATION
+    ============================================= */
+    .halaman-section { display: none !important; padding: 20px; width: 100%; box-sizing: border-box; }
+    .aktif {
+      display: block !important;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+    #main-app.halaman-section.aktif {
+      display: flex !important;
+    }
+ 
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+ 
+    /* =============================================
+       4. HALAMAN MENU UTAMA
+    ============================================= */
+    .menu-container {
+      max-width: 420px;
+      margin: 80px auto;
+      background: rgba(255, 255, 255, 0.97);
+      padding: 40px 30px;
+      border-radius: 25px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+ 
+    .menu-container h2 {
+      color: var(--bps-blue);
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+ 
+    .btn-menu {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 16px;
+      margin: 12px 0;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      color: white;
+      transition: 0.3s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      text-decoration: none;
+      font-family: inherit;
+    }
+ 
+    .btn-new    { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+    .btn-update { background: linear-gradient(135deg, #10b981, #059669); }
+    .btn-admin  { background: linear-gradient(135deg, #044b94, #02274f); }
+ 
+    .btn-menu:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      filter: brightness(1.1);
+      color: white;
+    }
+ 
+/* =============================================
+   STYLE REVISI UI MENU UTAMA MODERN SPLIT SCREEN
+============================================= */
+#halamanMenu {
+      position: relative;
+      min-height: 100vh;
+      margin-bottom: -80px;
+      overflow-x: hidden;
+      
+}
+
+/* Background Foto Samar di dalam Section Menu Utama */
+.menu-bg-blur {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.85), rgba(15, 23, 42, 0.9)),
+              url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80');
+  background-size: cover;
+  background-position: center;
+  filter: blur(4px);
+  z-index: 1;
+  transform: scale(1.05); /* Mencegah border putih saat diblur */
+}
+
+/* Container Utama Berbagi Layar (Split) */
+.menu-split-container {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-height: 100vh;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  align-items: center;
+  gap: 40px;
+}
+
+/* Panel Kiri (Informasi & Gambar Survei) */
+.menu-left-panel {
+  flex: 1;
+  color: white;
+  padding: 20px;
+  text-align: left;
+}
+
+.left-content-wrapper {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.bps-logo-main {
+  width: 90px;
+  margin-bottom: 25px;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+}
+
+.app-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -1px;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.app-subtitle {
+  font-size: 1.05rem;
+  color: #cbd5e1;
+  margin-bottom: 35px;
+}
+
+/* Container Ilustrasi Gambar Survei */
+.survey-illustration-container {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.survey-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  mix-blend-mode: multiply; /* Menghapus background putih bawaan ilustrasi jika ada */
+  max-height: 280px; 
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+/* Panel Kanan (Kelompok Tombol Tindakan) */
+.menu-right-panel {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.96);
+  padding: 45px 35px;
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.right-content-wrapper {
+  width: 100%;
+}
+
+.action-card-header {
+  margin-bottom: 30px;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 15px;
+}
+
+.action-card-header h3 {
+  color: #1e3a8a;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+/* Grouping Button List */
+.menu-buttons-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Desain Tombol Menu Baru yang User Friendly */
+.btn-menu-modern {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 16px 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: white;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Ikon Pembungkus */
+.btn-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 22px;
+  color: white;
+  margin-right: 16px;
+  transition: transform 0.2s;
+}
+
+.btn-text-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.btn-text-wrapper .title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.btn-text-wrapper .desc {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.arrow-icon {
+  font-size: 16px;
+  color: #94a3b8;
+  transition: transform 0.2s, color 0.2s;
+}
+
+/* Warna & Gradasi Ikon Masing-masing Menu */
+.btn-new-modern .btn-icon-wrapper {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-update-modern .btn-icon-wrapper {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-admin-modern .btn-icon-wrapper {
+  background: linear-gradient(135deg, #475569, #1e293b);
+  box-shadow: 0 4px 12px rgba(71, 85, 105, 0.3);
+}
+
+/* Efek Hover Interaktif (User Friendly) */
+.btn-menu-modern:hover {
+  transform: translateY(-2px);
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05);
+}
+
+.btn-menu-modern:hover .btn-icon-wrapper {
+  transform: scale(1.05);
+}
+
+.btn-menu-modern:hover .arrow-icon {
+  transform: translateX(4px);
+  color: #1e3a8a;
+}
+
+/* Footer Aplikasi di dalam Kartu */
+.menu-footer-info {
+  margin-top: 30px;
+  padding-top: 15px;
+  border-top: 1px dashed #e2e8f0;
+  text-align: center;
+  font-size: 11px;
+  color: #64748b;
+}
+
+    /* =============================================
+       5. CONTAINER FORM ENTRI / UPDATE (dari kp1)
+    ============================================= */
+    .container {
+      width: 95%;
+      max-width: 650px;
+      margin: 20px auto 100px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 25px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      overflow: visible;
+      position: relative;
+    }
+ 
+    /* Header Section */
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .header img {
+      width: 80px;
+      margin-bottom: 15px;
+    }
+    .header h2 {
+      margin: 0;
+      color: var(--bps-blue);
+      font-size: 24px;
+      letter-spacing: -0.5px;
+      font-weight: 700;
+    }
+    .subtitle {
+      color: #64748b;
+      font-size: 14px;
+      margin-top: 5px;
+      font-weight: 500;
+    }
+ 
+    /* Section Card */
+    .section {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      border: 1px solid #e5e7eb;
+      transition: border-color 0.2s;
+    }
+    .section:hover { border-color: #3b82f6; }
+ 
+    .section-title {
+      font-weight: 800;
+      color: #2563eb;
+      margin-bottom: 15px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+    }
+    .section-title::before {
+      content: "";
+      display: inline-block;
+      width: 4px;
+      height: 15px;
+      background: #2563eb;
+      margin-right: 8px;
+      border-radius: 2px;
+    }
+ 
+    /* Form Elements */
+    .form-group { margin-bottom: 18px; }
+    label {
+      display: block;
+      font-size: 13.5px;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #374151;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 10px;
+      box-sizing: border-box;
+      font-size: 14px;
+      transition: all 0.2s;
+      background-color: #f9fafb;
+      font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #2563eb;
+      background-color: #fff;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+    input[readonly] {
+      background: #f0f7ff;
+      color: #1e40af;
+      font-weight: bold;
+      border-color: #bfdbfe;
+    }
+ 
+    /* Bansos Grid */
+    .bansos-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      background: #f8fafc;
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px dashed #cbd5e1;
+    }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .check-item input { width: auto; cursor: pointer; }
+ 
+    /* Tombol Submit Form */
+    button {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(to bottom right, #2563eb, #1e40af);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      font-family: inherit;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(37, 99, 235, 0.4);
+    }
+    button:active { transform: translateY(0); }
+    button:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+ 
+    /* Preview Foto */
+    #preview-container {
+      margin-top: 15px;
+      display: none;
+      animation: fadeIn 0.5s;
+    }
+    #preview-img {
+      max-width: 100%;
+      border-radius: 12px;
+      border: 3px solid #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+ 
+    /* Loader Form */
+    .loading-overlay {
+      display: none;
+      text-align: center;
+      padding: 15px;
+      color: #2563eb;
+      font-weight: 600;
+      font-size: 14px;
+    }
+ 
+    /* Success Page Form */
+    #successPage {
+      display: none;
+      text-align: center;
+      padding: 40px 10px;
+      animation: fadeIn 0.5s ease-out;
+    }
+    .success-icon {
+      font-size: 60px;
+      background: #ecfdf5;
+      width: 100px;
+      height: 100px;
+      line-height: 100px;
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      color: #10b981;
+      border: 4px solid #a7f3d0;
+    }
+    .btn-next {
+      background: linear-gradient(to bottom right, #059669, #047857);
+      margin-top: 25px;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+    }
+ 
+    /* Status Box Error */
+    .status-box {
+      display: none;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      text-align: center;
+      font-size: 14px;
+    }
+    .status-error {
+      background-color: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #f87171;
+      animation: shake 0.5s;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+ 
+    /* =============================================
+       6. DASHBOARD ADMIN LAYOUT (dari dashboard)
+    ============================================= */
+    /* Login Page Dashboard */
+    #halamanLogin .menu-container {
+      background: rgba(255, 255, 255, 0.95);
+    }
+ 
+    /* Dashboard Wrapper */
+    .wrapper {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    align-items: stretch;
+    }
+ 
+    /* Sidebar */
+   #sidebar {
+  width: 250px;
+  min-width: 250px;
+  max-width: 250px;
+  background: #044b94;
+  background-image: linear-gradient(180deg, #044b94 0%, #02274f 100%);
+  color: #ffffff;
+  position: fixed;
+  top: 0;
+  left: 0; /* Secara default di laptop posisinya pas di pojok kiri layar */
+  height: 100vh;
+  z-index: 1040;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+}
+    #sidebar.active {
+  left: -250px;
+}
+ 
+    /* Main Content Dashboard */
+    .main-content {
+      width: 100%;
+      min-height: 100vh;
+      margin-left: 250px;
+      padding: 25px;
+      min-height: 100vh;
+      background-color: #f4f6f9;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1),width 0.3s;
+    }
+    .main-content.active { margin-left: 0; }
+ 
+    /* Desain Header Navigasi Konten yang Lebih Profesional */
+.page-header {
+  background: #ffffff;
+  padding: 15px 25px;
+  border-radius: 16px;
+  margin-bottom: 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-left: 5px solid var(--accent);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+  .nav-link {
+  color: rgba(255,255,255,0.75);
+  margin: 4px 12px;
+  border-radius: 10px;
+  transition: all 0.2s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  padding: 12px 18px;
+  font-size: 0.95rem;
+}
+
+    .nav-link:hover { background: rgba(255,255,255,0.1); color: white; }
+    .nav-link.active { background: var(--accent) !important; color: white !important; font-weight: 600;
+  box-shadow: 0 4px 10px rgba(247, 148, 29, 0.3);       }
+ 
+    /* Loader Overlay */
+    #loader {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(255,255,255,0.9); z-index: 9999;
+      display: none; align-items: center; justify-content: center;
+    }
+    .bps-logo { width: 55px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
+ 
+    .toggle-btn {
+  background: transparent;
+  border: none;
+  color: #044b94; /* Sesuaikan dengan warna tema BPS kamu */
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-btn:hover {
+  background: rgba(4, 75, 148, 0.1);
+}
+    /* Overlay sidebar di mobile */
+#sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1030;
+  display: none;
+  backdrop-filter: blur(2px);
+}
+    #sidebar-overlay.show { display: block; }
+ 
+    /* =============================================
+       7. RESPONSIVE MOBILE
+    ============================================= */
+@media (max-width: 991px) {
+      body {
+    padding-bottom: 0px !important;
+  }
+  /* Sembunyikan sidebar secara default di perangkat Mobile/Tablet */
+  #sidebar {
+    left: -250px !important;
+    z-index: 1060 !important;
+  }
+
+  /* 2. KETIKA AKTIF: Munculkan sidebar ke posisi koordinat 0 (terlihat di layar) */
+  #sidebar.active {
+    left: 0 !important;
+    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  /* Konten utama langsung memenuhi layar di Handphone */
+ .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 15px !important;
+  }
+  
+  /* Konten utama tidak perlu bergeser ke kanan saat sidebar muncul di HP */
+  .main-content.active {
+    margin-left: 0 !important;
+  }
+  
+  /* 4. Lapisan Transparan Belakang Sidebar (Overlay) */
+  #sidebar-overlay {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5) !important; /* Efek gelap transparan */
+    z-index: 1050 !important; /* Berada tepat di bawah sidebar (1050) */
+    display: none;
+    backdrop-filter: blur(3px);
+  }
+
+  #sidebar-overlay.show {
+    display: block !important;
+  }
+
+  /* Styling tambahan pelengkap komponen header di HP */
+  .page-header {
+    padding: 12px 15px !important;
+    margin-bottom: 15px !important;
+    gap: 10px
+  }
+  
+  .page-header h3 {
+    font-size: 1.1rem !important;
+  }
+      #halamanMenu {
+        align-items: flex-start;
+      }
+      .menu-split-container {
+        flex-direction: column;
+        padding: 30px 15px;
+        gap: 20px;
+      }
+      .menu-left-panel {
+        text-align: center;
+        padding: 10px 0 0 0;
+        width: 100%;
+      }
+      .bps-logo-main {
+        width: 75px;
+        margin-bottom: 15px;
+      }
+      .app-title {
+        font-size: 2rem;
+      }
+      .app-subtitle {
+        font-size: 0.95rem;
+        margin-bottom: 20px;
+      }
+      /* Gambar tidak disembunyikan, melainkan dibuat mengecil proporsional */
+      .survey-illustration-container {
+        display: flex; 
+        max-width: 260px;
+        margin: 0 auto;
+        padding: 10px;
+        border-radius: 15px;
+      }
+      .survey-img {
+        max-height: 140px;
+      }
+      .menu-right-panel {
+        width: 100%;
+        max-width: 500px;
+        padding: 30px 20px;
+        border-radius: 20px;
+      }
+      .action-card-header {
+        margin-bottom: 20px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+ 
+<!-- Overlay untuk sidebar mobile -->
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+ 
+<!-- Loader Global -->
+<div id="loader">
+  <div class="text-center">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-2 fw-bold text-secondary">Sinkronisasi Data Lapangan...</p>
+  </div>
+</div>
+ 
+<!-- =============================================
+     HALAMAN 1: MENU UTAMA
+============================================= -->
+<div id="halamanMenu" class="halaman-section aktif">
+  <div class="menu-bg-blur"></div>
+
+  <div class="menu-split-container">
+    
+    <div class="menu-left-panel" style="display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 40px 20px; min-height: 100%; box-sizing: border-box;">
+      
+      <div class="left-top-content text-center" style="width: 100%;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/28/Lambang_Badan_Pusat_Statistik_%28BPS%29_Indonesia.svg" 
+             class="bps-logo-main" 
+             alt="Logo BPS" 
+             style="height: 65px; width: auto; margin-bottom: 12px; filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.15));">
+        
+        <h1 class="app-title" style="font-size: 2.0rem; font-weight: 700; color: #ffffff; margin-bottom: 4px; text-shadow: 0px 2px 4px rgba(0,0,0,0.35); letter-spacing: 0.5px;">
+          BOLO SURVEI BPS
+        </h1>
+        
+        <p class="app-subtitle" style="font-size: 1.0rem; color: rgba(255, 255, 255, 0.85); margin-bottom: 0; text-shadow: 0px 1px 3px rgba(0,0,0,0.3); font-weight: 500;">
+          Badan Pusat Statistik Kabupaten Bojonegoro
+        </p>
+      </div>
+      
+      <div class="survey-illustration-container" style="background: none !important; border: none !important; box-shadow: none !important; padding: 0; margin-top: auto; margin-bottom: 0; width: 100%; display: flex; justify-content: center; align-items: center; flex-grow: 1;">
+        <img src="https://lh3.googleusercontent.com/d/1y-UU8qZtm1LmIO5HoPATmyjeaXxQKVR6" 
+             class="survey-img" 
+             alt="Maskot Bolo Survei BPS" 
+             style="width: 100%; max-width: 540px; height: auto; max-height: 420px; object-fit: contain; filter: drop-shadow(0px 12px 28px rgba(0,0,0,0.3)); border-radius: 0; box-shadow: none;">
+      </div>
+         
+    </div>
+
+    <div class="menu-right-panel">
+      <div class="right-content-wrapper">
+        <div class="action-card-header">
+          <h3>Menu Utama Aplikasi</h3>
+          <p class="text-muted small">Silakan pilih menu di bawah ini untuk memulai aktivitas manajemen survei</p>
+        </div>
+
+        <div class="menu-buttons-group">
+          <button class="btn-menu-modern btn-new-modern" onclick="bukaHalaman('halamanForm')">
+            <div class="btn-icon-wrapper"><i class="bi bi-plus-circle-fill"></i></div>
+            <div class="btn-text-wrapper">
+              <span class="title">Entri Data Baru</span>
+              <span class="desc">Input data hasil wawancara responden survei baru</span>
+            </div>
+            <i class="bi bi-chevron-right ms-auto arrow-icon"></i>
+          </button>
+
+          <button class="btn-menu-modern btn-update-modern" onclick="bukaHalaman('halamanUpdate')">
+            <div class="btn-icon-wrapper"><i class="bi bi-pencil-square"></i></div>
+            <div class="btn-text-wrapper">
+              <span class="title">Update Data Lama</span>
+              <span class="desc">Cari dan ubah data kuesioner yang sudah tersimpan</span>
+            </div>
+            <i class="bi bi-chevron-right ms-auto arrow-icon"></i>
+          </button>
+
+          <button class="btn-menu-modern btn-admin-modern" onclick="bukaHalaman('halamanLogin')">
+            <div class="btn-icon-wrapper"><i class="bi bi-shield-lock-fill"></i></div>
+            <div class="btn-text-wrapper">
+              <span class="title">Dashboard Admin / Pengawas</span>
+              <span class="desc">Monitoring realisasi petugas & verifikasi kelayakan data</span>
+            </div>
+            <i class="bi bi-chevron-right ms-auto arrow-icon"></i>
+          </button>
+        </div>
+
+        <div class="menu-footer-info">
+          <p class="mb-0">v2.5</p>
+          <p class="fw-semibold text-primary">BPS Kabupaten Bojonegoro</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+ 
+<!-- =============================================
+     HALAMAN 2: FORM ENTRI DATA BARU
+============================================= -->
+<div id="halamanForm" class="halaman-section">
+  <div class="container">
+    <?!= include('form'); ?>
+  </div>
+</div>
+ 
+<!-- =============================================
+     HALAMAN 3: UPDATE DATA LAMA
+============================================= -->
+<div id="halamanUpdate" class="halaman-section">
+  <div class="container">
+    <?!= include('update'); ?>
+  </div>
+</div>
+ 
+<!-- =============================================
+     HALAMAN 4: LOGIN ADMIN
+============================================= -->
+<div id="halamanLogin" class="halaman-section">
+  <div class="menu-container">
+    <div class="text-center mb-4">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/2/28/Lambang_Badan_Pusat_Statistik_%28BPS%29_Indonesia.svg" style="width: 75px;">
+      <h5 class="fw-bold mt-3" style="color: #044b94;">ADMIN BPS</h5>
+      <p class="text-muted small">Akses kontrol monitoring dan visualisasi</p>
+    </div>
+    <div class="mb-3 text-start">
+      <label class="form-label small fw-bold">Email Petugas</label>
+      <input type="email" id="login-email" class="form-control" placeholder="nama@bps.go.id">
+    </div>
+    <div class="mb-4 text-start">
+      <label class="form-label small fw-bold">Password</label>
+      <input type="password" id="login-pass" class="form-control" placeholder="••••••••">
+    </div>
+    <button onclick="handleLogin()" id="btn-login" class="btn btn-primary w-100 fw-bold py-2" style="background: #044b94; border:none; border-radius: 10px; font-family: inherit;">
+      Masuk ke Dashboard
+    </button>
+    <button class="btn btn-link btn-sm w-100 mt-2 text-decoration-none text-muted" onclick="bukaHalaman('halamanMenu')" style="font-family: inherit; color: white !important;">
+      ← Batal Kembali ke Menu
+    </button>
+    <div id="login-msg" class="text-danger small mt-2 text-center" style="display:none;">Email atau Password Admin salah!</div>
+  </div>
+</div>
+ 
+<!-- =============================================
+     HALAMAN 5: DASHBOARD ADMIN
+============================================= -->
+<div id="main-app" class="halaman-section container-fluid p-0">
+  <div class="wrapper w-100">
+    
+    <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <nav id="sidebar">
+      <div class="p-4 text-center position-relative">
+        
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/28/Lambang_Badan_Pusat_Statistik_%28BPS%29_Indonesia.svg" class="bps-logo mb-2" style="height: 55px; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.2));">
+        <h6 class="fw-bold text-white mb-1" style="font-size: 0.85rem; letter-spacing: 0.5px;">BADAN PUSAT STATISTIK</h6>
+        <h5 class="fw-bold text-white mb-0" style="font-size: 0.75rem; color: var(--accent) !important;">KABUPATEN BOJONEGORO</h5>
+        <hr class="border-light opacity-25 mt-3 mb-2">
+      </div>
+      
+      <nav class="nav flex-column px-2" id="main-nav">
+        <a id="nav-dashboard" class="nav-link active mb-1" onclick="showPage('dashboard')">
+          <i class="bi bi-grid-1x2-fill me-3 fs-5"></i> Dashboard
+        </a>
+        <a id="nav-track" class="nav-link mb-1" onclick="showPage('track')">
+          <i class="bi bi-person-walking me-3 fs-5"></i> Track Petugas
+        </a>
+        <a id="nav-analisis" class="nav-link mb-1" onclick="showPage('analisis')">
+          <i class="bi bi-bar-chart-fill me-3 fs-5"></i> Analisis Data
+        </a>
+        
+        <div class="mt-4 border-top border-light opacity-10 pt-3 px-3">
+          <small class="text-uppercase text-white-50 fw-bold" style="font-size: 0.7rem; letter-spacing: 1px;">Sistem</small>
+        </div>
+        
+        <a class="nav-link text-warning mt-1" onclick="forceRefresh()" style="cursor: pointer; font-size: 0.9rem;">
+          <i class="bi bi-arrow-clockwise me-3 fs-5"></i> Refresh Data
+        </a>
+        <a class="nav-link text-danger mt-1" onclick="handleLogout()" style="color: #f87171 !important; cursor: pointer; font-size: 0.9rem;">
+          <i class="bi bi-box-arrow-left me-3 fs-5"></i> Keluar Dashboard
+        </a>
+      </nav>
+
+      <div class="sidebar-footer text-center p-3 text-white-50 border-top border-light opacity-10 style='font-size: 0.75rem; margin-top: auto;'">
+        <small>© 2026 BPS Kab. Bojonegoro</small>
+      </div>
+    </nav>
+ 
+    <div id="content" class="main-content">
+      
+      <div class="page-header d-flex justify-content-between align-items-center mb-4 shadow-sm p-3 bg-white rounded-4">
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="toggle-btn d-lg-none bg-primary text-white rounded-3 px-3 py-1 border-0 shadow-sm" onclick="toggleSidebar()" aria-label="Toggle Navigation">
+            <i class="bi bi-list fs-2"></i>
+          </button>
+          <div>
+            <h3 class="fw-bold mb-0 text-dark" style="font-size: 1.25rem; font-family: 'Poppins', sans-serif;">
+              Bolo Survei Bojonegoro
+            </h3>
+            <p class="text-muted mb-0 small">
+              <i class="bi bi-geo-alt-fill text-danger"></i> Pantauan Real-time Survei
+            </p>
+          </div>
+        </div>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/28/Lambang_Badan_Pusat_Statistik_%28BPS%29_Indonesia.svg" class="d-none d-sm-block" style="height: 45px;">
+      </div>
+ 
+      <div id="section-dashboard"> 
+        <?!= include('dashboard'); ?> 
+      </div>
+      
+      <div id="section-track" class="d-none"> 
+        <?!= include('track'); ?> 
+      </div>
+      
+      <div id="section-analisis" class="d-none"> 
+        <?!= include('analisis'); ?> 
+      </div>
+      
+    </div> </div> </div> 
+ 
+<!-- Modal Daftar Petugas (dipakai oleh dashboard.html) -->
+<div class="modal fade" id="modalPetugas" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content" style="border-radius: 20px;">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold" id="modalTitle">Daftar Petugas</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <ul id="listNamaPetugas" class="list-group list-group-flush"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- =============================================
+     JAVASCRIPT LIBRARIES
+============================================= -->
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+// =============================================
+  // VARIABEL GLOBAL (dipakai form.html & update.html)
+  // =============================================
+  let globalData = {};
+  
+  
+
+  
+  // =============================================
+  // NAVIGASI UTAMA SPA
+  // =============================================
+  
+  function bukaHalaman(idHalaman) {
+    console.log("Membuka halaman: " + idHalaman); // Untuk debug di console browser
+    
+    // Sembunyikan semua halaman
+    document.querySelectorAll('.halaman-section').forEach(section => {
+      section.classList.remove('aktif');
+    });
+ 
+    // Tampilkan halaman target
+    const targetHalaman = document.getElementById(idHalaman);
+    if (targetHalaman) {
+      targetHalaman.classList.add('aktif');
+    } else {
+      console.error("Halaman dengan ID " + idHalaman + " tidak ditemukan!");
+      return;
+    }
+ 
+    // Atur background dinamis
+    const body = document.body;
+    if (idHalaman === 'halamanMenu' || idHalaman === 'halamanLogin') {
+      body.style.backgroundImage = "linear-gradient(rgba(30, 58, 138, 0.6), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1551288049-bbda48642a4c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80')";
+      body.style.backgroundSize = "cover";
+      body.style.backgroundAttachment = "fixed";
+    } else {
+      body.style.background = "#f4f6f9";
+    }
+
+    // 4. Reset status sidebar ke kondisi tertutup saat pertama kali admin login
+  if (idHalaman === 'main-app') {
+    const isMobile = window.innerWidth <= 991;
+    if (isMobile) {
+      document.getElementById('sidebar').classList.remove('active');
+      document.getElementById('content').classList.remove('active');
+      document.getElementById('sidebar-overlay').classList.remove('show');
+    } else {
+      document.getElementById('sidebar').classList.remove('active');
+      document.getElementById('content').classList.remove('active');
+    }
+    
+    
+    // Inisialisasi ulang Leaflet Map jika ada di sub-dashboard agar tidak bug/blank abu-abu
+    setTimeout(() => {
+      if (typeof map !== 'undefined' && map !== null) {
+        map.invalidateSize();
+      }
+    }, 400);
+  }
+  
+ 
+    // Logika khusus halaman Form Entri
+    if (idHalaman === 'halamanForm') {
+      const drafTersimpan = localStorage.getItem('bps_survey_draft');
+      if (drafTersimpan) {
+        Swal.fire({
+          title: 'Ada Draf Tersimpan',
+          text: "Ingin melanjutkan pengerjaan sebelumnya?",
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#2563eb',
+          cancelButtonColor: '#64748b',
+          confirmButtonText: 'Ya, Lanjutkan',
+          cancelButtonText: 'Tidak, Data Baru',
+          reverseButtons: true
+        }).then((result) => {
+          if (result.isConfirmed) {
+            pulihkanDraf(drafTersimpan);
+          } else {
+            localStorage.removeItem('bps_survey_draft');
+            const surveyForm = document.getElementById('surveyForm');
+            if (surveyForm) surveyForm.reset();
+            catatWaktuDanLokasiBaru();
+            if (typeof loadPetugas === "function") { loadPetugas(); }
+            Swal.fire({ icon: 'info', title: 'Lembar Baru', text: 'Memulai pendataan dengan waktu baru.', timer: 1500, showConfirmButton: false });
+          }
+        });
+      } else {
+        catatWaktuDanLokasiBaru();
+        if (typeof loadPetugas === "function") { loadPetugas(); }
+      }
+    }
+ 
+    // Logika khusus halaman Update (Sudah diperbaiki dengan pengaman typeof)
+    if (idHalaman === 'halamanUpdate') {
+      if (typeof loadPetugasUpdate === "function") {
+        loadPetugasUpdate();
+      } else if (typeof loadPetugasUpdate === "function") {
+        loadPetugasUpdate();
+      } else {
+        console.warn("Fungsi memuat petugas belum tersedia di template form/update.");
+      }
+    }
+    // Gulir otomatis ke atas setiap berganti halaman demi kenyamanan user
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  }
+ 
+ 
+  // =============================================
+  // FUNGSI FORM ENTRI
+  // =============================================
+  
+  function catatWaktuDanLokasiBaru() {
+    const inputStartTime = document.getElementById('startTime');
+    if (inputStartTime) {
+      inputStartTime.value = new Date().toISOString();
+    }
+    if (typeof initGPS === "function") {
+      initGPS();
+    }
+  }
+ 
+  async function pulihkanDraf(jsonDraf) {
+    const data = JSON.parse(jsonDraf);
+    Swal.fire({ title: 'Memulihkan Data...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+ 
+    try {
+      const fields = ['emailManual', 'namaPetugas', 'idPetugas', 'kecamatan'];
+      fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = data[id];
+      });
+ 
+      if (data.kecamatan) {
+        if (typeof updateWilayah === "function") await updateWilayah();
+        const wil = document.getElementById('wilayah');
+        if (wil) wil.value = data.wilayah;
+      }
+      if (data.wilayah) {
+        if (typeof getSlsOtomatis === "function") await getSlsOtomatis();
+        const slsEl = document.getElementById('sls');
+        if (slsEl) slsEl.value = data.sls;
+      }
+      if (data.sls) {
+        if (typeof updateKrtDariSls === "function") await updateKrtDariSls();
+        const krtEl = document.getElementById('namaKRT');
+        if (krtEl) krtEl.value = data.namaKRT;
+      }
+ 
+      Object.keys(data).forEach(key => {
+        if (!['kecamatan', 'wilayah', 'sls', 'namaKRT'].includes(key)) {
+          const el = document.getElementById(key);
+          if (el) el.value = data[key];
+        }
+      });
+ 
+      Swal.close();
+      Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Data draf telah dipulihkan!', timer: 1500, showConfirmButton: false });
+    } catch (error) {
+      Swal.fire('Error', 'Gagal memulihkan draf: ' + error, 'error');
+    }
+  }
+ 
+  // =============================================
+  // FUNGSI DASHBOARD ADMIN
+  // =============================================
+ 
+  function handleLogin() {
+    const email = document.getElementById('login-email').value;
+    const pass  = document.getElementById('login-pass').value;
+    const btn   = document.getElementById('btn-login');
+    const msg   = document.getElementById('login-msg');
+ 
+    if (!email || !pass) {
+      Swal.fire('Peringatan', 'Harap isi email dan password!', 'warning');
+      return;
+    }
+ 
+    btn.disabled  = true;
+    btn.innerText = "Memverifikasi...";
+    msg.style.display = 'none';
+ 
+    // Memastikan google.script.run tersedia
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      google.script.run
+        .withSuccessHandler(isValid => {
+          if (isValid) {
+            document.getElementById('halamanLogin').classList.remove('aktif');
+            document.getElementById('main-app').classList.add('aktif');
+            document.body.style.backgroundImage = "none";
+            document.body.style.backgroundColor = "var(--light-bg)";
+            loadData();
+          } else {
+            btn.disabled  = false;
+            btn.innerText = "Masuk ke Dashboard";
+            msg.style.display = 'block';
+          }
+        })
+        .withFailureHandler(err => {
+            btn.disabled  = false;
+            btn.innerText = "Masuk ke Dashboard";
+            Swal.fire('Server Error', err.message, 'error');
+        })
+        .checkLogin(email, pass);
+    } else {
+      btn.disabled = false;
+      btn.innerText = "Masuk ke Dashboard";
+      Swal.fire('Error', 'Koneksi ke Google Script gagal. Pastikan dijalankan sebagai Web App!', 'error');
+    }
+  }
+ 
+  function handleLogout() {
+    document.getElementById('main-app').classList.remove('aktif');
+    bukaHalaman('halamanMenu');
+  }
+ 
+  function loadData() {
+    document.getElementById('loader').style.display = 'flex';
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      google.script.run
+        .withSuccessHandler(data => {
+          globalData = data;
+          if (typeof renderDashboard === "function") renderDashboard(data);
+          document.getElementById('loader').style.display = 'none';
+          setTimeout(() => {
+            if (typeof map !== 'undefined' && map !== null) {
+              map.invalidateSize();
+            }
+          }, 600);
+        })
+        .withFailureHandler(err => {
+          document.getElementById('loader').style.display = 'none';
+          Swal.fire("Error Server", err.message, "error");
+        })
+        .getDashboardData();
+    }
+  }
+ 
+  function showPage(pageId) {
+    const pages = ['dashboard', 'track', 'analisis'];
+    pages.forEach(p => {
+      const section  = document.getElementById('section-' + p);
+      const navLink  = document.getElementById('nav-' + p);
+      if (p === pageId) {
+        if (section) section.classList.remove('d-none');
+        if (navLink) navLink.classList.add('active');
+      } else {
+        if (section) section.classList.add('d-none');
+        if (navLink) navLink.classList.remove('active');
+      }
+    });
+ 
+    if (window.innerWidth <= 768) {
+      toggleSidebar();
+    }
+ 
+    if (pageId === 'track' && typeof renderTrackTable === "function") {
+      renderTrackTable();
+    }
+    if (pageId === 'analisis' && typeof renderAnalisis === "function") {
+      setTimeout(() => { renderAnalisis(globalData); }, 300);
+    }
+  }
+ 
+  function toggleSidebar() {
+    const sidebar  = document.getElementById('sidebar');
+    const content  = document.getElementById('content');
+    const overlay  = document.getElementById('sidebar-overlay');
+ 
+    if(sidebar) sidebar.classList.toggle('active');
+    if(content) content.classList.toggle('active');
+ 
+    if (window.innerWidth <= 991) {
+    if (sidebar.classList.contains('active')) {
+      overlay.classList.add('show');
+    } else {
+      overlay.classList.remove('show');
+    }
+    }
+ 
+    setTimeout(() => {
+      if (typeof map !== 'undefined') {
+        map.invalidateSize();
+      }
+    }, 350);
+  }
+
+  document.querySelectorAll('#main-nav .nav-link').forEach(link => {
+  link.addEventListener('click', () => {
+    if (window.innerWidth <= 991) {
+      document.getElementById('sidebar').classList.remove('active');
+      document.getElementById('content').classList.remove('active');
+      document.getElementById('sidebar-overlay').classList.remove('show');
+    }
+  });
+});
+ 
+  function forceRefresh() {
+    Swal.fire({ title: 'Memperbarui Data...', text: 'Harap tunggu sebentar', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      google.script.run.withSuccessHandler(data => {
+        globalData = data;
+        if (typeof renderDashboard   === "function") renderDashboard(data);
+        if (typeof renderTrackTable  === "function") renderTrackTable();
+        if (typeof renderAnalisis    === "function") renderAnalisis(data);
+        Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Data terbaru telah dimuat!', timer: 1500, showConfirmButton: false });
+      }).getDashboardData();
+    }
+  }
+ 
+  function formatDurasi(detik) {
+    if (!detik || detik === 0 || isNaN(detik)) return "0s";
+    const jam        = Math.floor(detik / 3600);
+    const menit      = Math.floor((detik % 3600) / 60);
+    const sisaDetik  = Math.round(detik % 60);
+    let hasil = "";
+    if (jam > 0)       hasil += `${jam}j `;
+    if (menit > 0)     hasil += `${menit}m `;
+    if (sisaDetik > 0 || hasil === "") hasil += `${sisaDetik}s`;
+    return hasil.trim();
+  }
+
+  function initGPS() {
+  const btn = document.getElementById('submitBtn');
+  
+  if (!navigator.geolocation) {
+    alert("Browser Anda tidak mendukung GPS.");
+    return;
+  }
+
+  const options = {
+    enableHighAccuracy: true, // Mencoba GPS Satelit
+    timeout: 10000,           // Menunggu maksimal 10 detik
+    maximumAge: 0
+  };
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      document.getElementById('latitude').value = pos.coords.latitude;
+      document.getElementById('longitude').value = pos.coords.longitude;
+      btn.disabled = false;
+      btn.innerText = "Kirim Data Survei";
+      btn.style.background = "#2563eb"; 
+    },
+    (err) => {
+      console.warn(`Kesalahan GPS: ${err.message}`);
+      
+      // Jika error karena Timeout, coba lagi dengan akurasi rendah (lebih cepat)
+      if (err.code === 3) {
+        btn.innerText = "Mencoba GPS Akurasi Rendah...";
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            document.getElementById('latitude').value = pos.coords.latitude;
+            document.getElementById('longitude').value = pos.coords.longitude;
+            btn.disabled = false;
+            btn.innerText = "Kirim Data Survei (Akurasi Rendah)";
+          },
+          () => alert("GPS Gagal total. Silakan refresh atau pindah ke tempat terbuka."),
+          { enableHighAccuracy: false, timeout: 5000 }
+        );
+      } else {
+        alert("Akses Lokasi Ditolak. Harap izinkan GPS di pengaturan browser.");
+      }
+    },
+    options
+  );
+}
+</script>
+</body>
+</html>
