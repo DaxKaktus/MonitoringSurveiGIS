@@ -1,0 +1,343 @@
+<div id="section-track" class="container-fluid">
+  <div id="trackListView">
+    <div class="card p-3 mb-4 shadow-sm border-0">
+      <div class="d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">Progress Survei Global (Realisasi vs Target)</h6>
+        <span id="textGlobal" class="badge bg-primary">0/0</span>
+      </div>
+      <div class="progress mt-2" style="height: 12px; border-radius: 10px;">
+        <div id="progressGlobal" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"></div>
+      </div>
+    </div>
+
+    <div class="card p-3 mb-4 shadow-sm border-0">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0 text-dark fw-bold">Monitoring Progres Petugas (PCL)</h5>
+        <div class="input-group w-25">
+          <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+          <input type="text" id="trackSearch" class="form-control form-control-sm border-start-0" placeholder="Cari Nama PCL/PML...">
+        </div>
+      </div>
+      
+      <div class="table-responsive">
+        <table class="table table-hover align-middle" id="tableTracking" style="font-size: 13.5px;">
+          <thead class="table-light">
+            <tr class="text-uppercase text-muted" style="font-size: 11px; letter-spacing: 1px;">
+              <th>PML</th>
+              <th>Nama PCL</th>
+              <th class="text-center">Target</th>
+              <th class="text-center">Real</th>
+              <th class="text-center">Persen</th>
+              <th class="text-center">Status</th>
+            </tr>
+          </thead>
+          <tbody id="bodyTrack"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="trackDetailView" style="display: none;">
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
+        <button class="btn btn-sm text-white border-0" onclick="closeDetailTrack()" style="background-color: #044b94;">
+          <i class="bi bi-arrow-left"></i> Kembali ke Daftar
+        </button>
+        <div class="text-end">
+          <h5 class="mb-0 fw-bold text-primary" id="detailNamaPcl">Detail Analisis</h5>
+          <small class="text-muted" id="detailWilayah"></small>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="row g-3 text-center mb-4">
+          <div class="col-md-4">
+            <div class="border rounded-3 p-3 bg-light">
+              <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 10px;">Avg Durasi</small>
+              <h3 id="detailAvg" class="mb-0 fw-bold text-primary">0</h3>
+              <small class="text-muted">Rata-rata per responden</small>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="border rounded-3 p-3 bg-light">
+              <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 10px;">Produktivitas</small>
+              <h3 id="detailLaju" class="mb-0 fw-bold">-</h3>
+              <small id="detailLajuSub" class="text-muted">Kecenderungan Harian</small>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="border rounded-3 p-3 bg-light">
+              <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 10px;">Pencapaian</small>
+              <h3 id="detailPersen" class="mb-0 fw-bold text-success">0%</h3>
+              <small id="detailTargetInfo" class="text-muted fw-bold"></small>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-6 mb-4">
+            <div class="card h-100 border shadow-none">
+              <div class="card-body text-center">
+                <h6 class="fw-bold mb-3">Persentase Target</h6>
+                <div style="height: 220px;"><canvas id="chartPiePetugas"></canvas></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 mb-4">
+            <div class="card h-100 border shadow-none">
+              <div class="card-body text-center">
+                <h6 class="fw-bold mb-3">Trend Harian (3 Terakhir)</h6>
+                <div style="height: 220px;"><canvas id="chartTrendPetugas"></canvas></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card border shadow-none mt-2">
+          <div class="card-header bg-dark text-white fw-bold d-flex justify-content-between">
+             <span>Daftar KRT yang Didapatkan</span>
+             <small>Target: <span id="targetKrtLabel">20</span> KRT</small>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 400px;">
+              <table class="table table-sm table-striped hover mb-0" style="font-size: 11px;">
+                  <thead class="sticky-top" style="background: #044b94; color: white;">
+                  <tr>
+                  <th class="ps-3 text-center">No</th>
+                  <th>📅 Tanggal</th>
+                  <th>🕐 Jam Mulai → Selesai</th>
+                  <th>👤 KRT</th>
+                  <th>🎓 Pendidikan</th>
+                  <th>👨‍👩‍👧 ART</th>
+                  <th>📍 Desa / SLS</th>
+                  <th class="text-center">⏱️ Durasi</th>
+                  <th class="text-center">📌 Lokasi</th>
+                  <th class="text-center">✅ Verif</th>
+                  </tr>
+                  </thead>
+                <tbody id="detailKrtList"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let chartPie, chartTrend;
+
+/**
+ * 1. RENDER TABEL UTAMA (Monitoring Progres Petugas)
+ * Menampilkan daftar PCL, Target (10x jumlah SLS), dan Realisasi
+ */
+function formatDurasi(detik) {
+  if (!detik || detik === 0 || isNaN(detik)) return "0s";
+  
+  const jam = Math.floor(detik / 3600);
+  const menit = Math.floor((detik % 3600) / 60);
+  const sisaDetik = Math.round(detik % 60);
+  
+  let hasil = "";
+  if (jam > 0) hasil += `${jam}j `;
+  if (menit > 0) hasil += `${menit}m `;
+  if (sisaDetik > 0 || hasil === "") hasil += `${sisaDetik}s`;
+  
+  return hasil.trim();
+}
+
+function renderTrackTable() {
+  const res = globalData; 
+  if (!res || !res.staffTrack) {
+    console.warn("Data staffTrack belum tersedia.");
+    return;
+  }
+  
+  const container = document.getElementById('bodyTrack');
+  const globalBar = document.getElementById('progressGlobal');
+  const textGlobal = document.getElementById('textGlobal');
+  
+  // Progress Bar Global (Total Realisasi / Total Target Semua PCL)
+  const totalTargetSemua = res.staffTrack.reduce((sum, s) => sum + s.target, 0);
+  const totalRealSemua = res.allResponses.length;
+  const persenGlobal = totalTargetSemua > 0 ? ((totalRealSemua / totalTargetSemua) * 100).toFixed(1) : 0;
+
+  globalBar.style.width = persenGlobal + '%';
+  textGlobal.innerText = `${totalRealSemua} / ${totalTargetSemua} Dokumen (KRT)`;
+
+  let html = '';
+  res.staffTrack.forEach(s => {
+    // Penentuan warna tombol status
+    let badgeClass = 'bg-danger text-white'; // Default: Belum Mulai
+    if (s.status === 'Selesai') badgeClass = 'bg-success';
+    else if (s.status === 'Proses') badgeClass = 'bg-warning text-dark';
+    
+    html += `
+      <tr>
+        <td><small class="text-muted">${s.pml || '-'}</small></td>
+        <td><span class="fw-bold text-dark">${s.pcl}</span></td>
+        <td class="text-center">
+          <span class="badge bg-light text-dark border" title="Dihitung 10 per SLS">
+            ${s.target}
+          </span>
+        </td>
+        <td class="text-center fw-bold">${s.realisasi}</td>
+        <td class="text-center">
+          <div class="d-flex align-items-center justify-content-center">
+             <div class="progress w-50 me-2" style="height: 6px;">
+                <div class="progress-bar bg-success" style="width: ${s.persen}%"></div>
+             </div>
+             <small>${s.persen}%</small>
+          </div>
+        </td>
+        <td class="text-center">
+          <button class="btn btn-sm ${badgeClass} shadow-sm fw-bold py-1" 
+                  style="width:95px; font-size:11px" 
+                  onclick="openDetailTrack('${s.namaAman}')">
+            ${s.status}
+          </button>
+        </td>
+      </tr>`;
+  });
+  container.innerHTML = html;
+}
+
+/**
+ * 2. OPEN DETAIL PETUGAS
+ * Menampilkan modal detail saat tombol status PCL diklik
+ */
+function openDetailTrack(pclName) {
+  if (!globalData || !globalData.staffTrack) return;
+
+  const staff = globalData.staffTrack.find(x => x.pcl === pclName);
+  if(!staff) return;
+
+  // Header & Info Wilayah (Mengambil SLS unik dari master data petugas)
+  document.getElementById('detailNamaPcl').innerText = "Analisis PCL: " + staff.pcl;
+  const listSls = [...new Set(staff.detail.map(d => d.sls))].join(", ");
+  document.getElementById('detailWilayah').innerText = "Wilayah Tugas (SLS): " + listSls;
+
+  // Statistik Angka
+  document.getElementById('detailAvg').innerText = formatDurasi(staff.avgDurasi);
+  document.getElementById('detailPersen').innerText = staff.persen + "%";
+  document.getElementById('detailTargetInfo').innerText = `${staff.realisasi} / ${staff.target} KRT`;
+  document.getElementById('targetKrtLabel').innerText = staff.target;
+
+  // Hitung Produktivitas (Target minimal 3 per hari jika sudah mulai)
+  const tglKeys = Object.keys(staff.dataHarian || {});
+  const avgHarian = tglKeys.length > 0 ? (staff.realisasi / tglKeys.length) : 0;
+  const lajuEl = document.getElementById('detailLaju');
+  
+  if (staff.realisasi === 0) {
+    lajuEl.innerText = "BELUM ADA";
+    lajuEl.className = "mb-0 fw-bold text-muted";
+  } else {
+    lajuEl.innerText = avgHarian >= 2 ? "PRODUKTIF" : "LAMBAT";
+    lajuEl.className = avgHarian >= 2 ? "mb-0 fw-bold text-success" : "mb-0 fw-bold text-danger";
+  }
+
+  // --- CHARTS (Doughnut untuk Pencapaian) ---
+  const ctxPie = document.getElementById('chartPiePetugas').getContext('2d');
+  if(chartPie) chartPie.destroy();
+  chartPie = new Chart(ctxPie, {
+    type: 'doughnut',
+    data: {
+      labels: ['Realisasi', 'Sisa'],
+      datasets: [{
+        data: [staff.realisasi, Math.max(0, staff.target - staff.realisasi)],
+        backgroundColor: ['#27ae60', '#ecf0f1'],
+        borderWidth: 0
+      }]
+    },
+    options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+  });
+
+  // --- TREND HARIAN (3 Hari Terakhir) ---
+  const last3Days = tglKeys.sort();
+  const trendData = last3Days.map(k => staff.dataHarian[k]);
+  const ctxTrend = document.getElementById('chartTrendPetugas').getContext('2d');
+  if(chartTrend) chartTrend.destroy();
+  chartTrend = new Chart(ctxTrend, {
+    type: 'bar',
+    data: {
+      labels: last3Days.map(d => d.split('-').slice(1).reverse().join('/')), // Format DD/MM
+      datasets: [{ label: 'KRT', data: trendData, backgroundColor: '#3498db', borderRadius: 5 }]
+    },
+    options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  });
+
+  // --- TABEL DAFTAR KRT (Filter dari Respon Survei) ---
+  const krtContainer = document.getElementById('detailKrtList');
+  let krtHtml = '';
+  // Memfilter semua jawaban dari RESPON_SURVEI berdasarkan nama PCL
+  const detailKrt = globalData.allResponses.filter(r => r.namaPcl === pclName);
+
+  if (detailKrt.length > 0) {
+  detailKrt.forEach((k, idx) => {
+    // Badge status verifikasi
+    let verifBadge = '';
+    if (k.status === 'RELEVAN')      verifBadge = '<span class="badge bg-success" style="font-size:9px;">RELEVAN</span>';
+    else if (k.status === 'DITOLAK') verifBadge = '<span class="badge bg-danger" style="font-size:9px;">DITOLAK</span>';
+    else                             verifBadge = '<span class="badge bg-secondary opacity-75" style="font-size:9px;">Belum</span>';
+
+    // Indikator lokasi
+    const lokasiIcon = k.isValid
+      ? '<span class="badge bg-success" style="font-size:9px;">✅ Valid</span>'
+      : '<span class="badge bg-danger"  style="font-size:9px;">❌ Luar</span>';
+
+    krtHtml += `
+      <tr>
+        <td class="ps-3 text-center fw-bold text-muted">${idx + 1}</td>
+        <td>
+          <div class="fw-bold text-primary" style="font-size:10px;">${k.tanggal || k.timestamp}</div>
+          <div class="text-muted" style="font-size:9px;">${k.hari || ''}</div>
+        </td>
+        <td>
+          <div style="font-size:10px;">
+            <span class="text-success fw-bold">${k.jamMulai || '-'}</span>
+            <span class="text-muted mx-1">→</span>
+            <span class="text-danger fw-bold">${k.jamSelesai || '-'}</span>
+          </div>
+        </td>
+        <td class="fw-bold">${k.krt || 'Tanpa Nama'}</td>
+        <td style="font-size:10px;">${k.pendidikan || '-'}</td>
+        <td class="text-center">
+          <span class="badge bg-light text-dark border">${k.jumlahART || 0}</span>
+        </td>
+        <td>
+          <div style="font-size:10px;">${k.desa || '-'}</div>
+          <span class="badge bg-light text-dark border" style="font-size:9px;">SLS ${k.sls || '-'}</span>
+        </td>
+        <td class="text-center">
+          <span class="badge bg-info text-dark">${formatDurasi(k.durasi)}</span>
+        </td>
+        <td class="text-center">${lokasiIcon}</td>
+        <td class="text-center">${verifBadge}</td>
+      </tr>`;
+  });
+} else {
+  krtHtml = '<tr><td colspan="10" class="text-center py-4 text-muted">PCL ini belum melakukan input data survei.</td></tr>';
+}
+  krtContainer.innerHTML = krtHtml;
+
+  // Navigasi Tampilan
+  document.getElementById('trackListView').style.display = 'none';
+  document.getElementById('trackDetailView').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+function closeDetailTrack() {
+  document.getElementById('trackListView').style.display = 'block';
+  document.getElementById('trackDetailView').style.display = 'none';
+}
+
+// Fitur Pencarian Nama PCL atau PML
+document.getElementById('trackSearch').addEventListener('keyup', function() {
+  let val = this.value.toLowerCase();
+  let rows = document.querySelectorAll("#bodyTrack tr");
+  rows.forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(val) ? "" : "none";
+  });
+});
+</script>
