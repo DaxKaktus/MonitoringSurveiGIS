@@ -1,0 +1,525 @@
+function doGet() {
+  // Gunakan createTemplateFromFile, bukan createHtmlOutputFromFile
+  var template = HtmlService.createTemplateFromFile('index');
+  
+  // Fungsi .evaluate() inilah yang bertugas memproses kode <?!= include() ?>
+  return template.evaluate()
+    .setTitle('Bolo Survei BPS')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+// Fungsi pembantu ini harus ada di kode.gs agar include() bisa dipanggil
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
+// ... Sertakan fungsi submitForm, getDaftarPetugas dll milik Anda di bawah sini ...
+// Fungsi pembantu untuk 
+
+/**
+ * Mengambil daftar petugas dari sheet DATA_PETUGAS
+ */
+function getDaftarPetugas(kec, desa, sls) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet(); 
+    const sheet = ss.getSheetByName('DATA_PETUGAS'); 
+    const data = sheet.getDataRange().getValues(); 
+    if (data.length <= 1) return []; 
+
+    let petugas = []; 
+    let currentIdPcl = ""; 
+    let currentNamaPcl = ""; 
+    let currentKec = ""; 
+    let currentDesa = ""; 
+    let currentSls = ""; 
+    let tempPetugas = {}; 
+
+    for (let i = 1; i < data.length; i++) { 
+      let row = data[i]; 
+      
+      if (row[2] && row[2].toString().trim() !== "") currentIdPcl = row[2].toString().trim(); 
+      if (row[3] && row[3].toString().trim() !== "") currentNamaPcl = row[3].toString().trim(); 
+      if (row[4] && row[4].toString().trim() !== "") currentKec = row[4].toString().trim().toUpperCase(); 
+      if (row[5] && row[5].toString().trim() !== "") currentDesa = row[5].toString().trim().toUpperCase(); 
+      if (row[6] && row[6].toString().trim() !== "") currentSls = row[6].toString().trim(); 
+
+      if (kec && desa && sls) { 
+        let namaKRTVal = row[8] ? row[8].toString().trim() : ""; 
+        if (currentKec === kec.toUpperCase().trim() && 
+            currentDesa === desa.toUpperCase().trim() && 
+            currentSls === sls.toString().trim()) { 
+          if (namaKRTVal !== "") {
+            petugas.push({ nama: namaKRTVal }); 
+          }
+        }
+      } else { 
+        if (currentNamaPcl !== "") { 
+          let key = currentNamaPcl + currentDesa + currentSls; 
+          if (!tempPetugas[key]) {
+            tempPetugas[key] = { 
+              nama: currentNamaPcl, 
+              id: currentIdPcl, 
+              desa: currentDesa, 
+              sls: currentSls   
+            };
+          }
+        }
+      }
+    }
+
+    if (!(kec && desa && sls)) {
+      petugas = Object.values(tempPetugas); 
+    }
+    
+    return petugas.sort((a, b) => a.nama.localeCompare(b.nama)); 
+  } catch (e) {
+    return []; 
+  }
+}
+
+/**
+ * Menerima data dari HTML Form untuk input BARU
+ */
+function submitForm(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet(); 
+  const sheet = ss.getSheetByName('RESPON_SURVEI'); 
+  let userEmail = data.emailPetugas; 
+  const now = new Date(); 
+  const today = Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyy-MM-dd'); 
+
+  const totalPengeluaran = Number(data.makan) + Number(data.nonMakan); 
+  let fotoUrl = "Tidak ada foto"; 
+
+  if (data.fotoFile) { 
+    const folder = DriveApp.getFolderById('1u7s5qucSwS2t6qQKDAELrSmgfF3Ow6_l'); 
+    const contentType = data.fotoFile.substring(5, data.fotoFile.indexOf(';')); 
+    const bytes = Utilities.base64Decode(data.fotoFile.split(',')[1]); 
+    const blob = Utilities.newBlob(bytes, contentType, "Foto_" + data.namaKRT + "_" + today + ".jpg"); 
+    const file = folder.createFile(blob); 
+    //file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); 
+    fotoUrl = file.getUrl(); 
+  }
+
+  // Validasi Batasan Target
+  const values = sheet.getDataRange().getValues(); 
+  let countToday = 0, countTotal = 0; 
+  for (let i = 1; i < values.length; i++) {
+    if (values[i][3] == data.idPetugas) { 
+      countTotal++; 
+      let dSheet = values[i][24] instanceof Date ? values[i][24] : new Date(values[i][24]); 
+      if (Utilities.formatDate(dSheet, Session.getScriptTimeZone(), 'yyyy-MM-dd') === today) countToday++; 
+    }
+  }
+
+  if (countTotal >= 20) return { status: 'error', message: 'Target maksimal tercapai (20 survei).' }; 
+  if (countToday >= 3) return { status: 'error', message: 'Batas harian tercapai (3 survei/hari).' }; 
+
+  const startTime = new Date(data.startTime); 
+  const durationMs = now - startTime; 
+  const durationMinutes = Math.floor(durationMs / 60000); 
+  const durationSeconds = Math.floor((durationMs % 60000) / 1000); 
+
+  sheet.appendRow([
+    now, userEmail, data.namaPetugas, data.idPetugas, "'" + data.latitude, "'" + data.longitude,
+    startTime, now, durationMinutes, durationSeconds, data.kecamatan, data.wilayah, data.sls,
+    data.namaKRT, data.pendidikanKRT, data.pekerjaanKRT, data.jumlahART, data.pendapatan,
+    data.makan, data.nonMakan, totalPengeluaran, data.bansos, fotoUrl, data.catatan, today
+  ]); 
+
+  return { status: 'success', message: 'Data survei berhasil disimpan!' }; 
+}
+
+/**
+ * --- FUNGSI TAMBAHAN UNTUK FITUR UPDATE ---
+ */
+
+/**
+ * Mencari data lama untuk ditampilkan di form edit
+ */
+function searchSurveyData(namaPcl, kec, desa, sls, namaKrt) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('RESPON_SURVEI');
+    const data = sheet.getDataRange().getValues();
+    
+    for (let i = 1; i < data.length; i++) {
+      // Kolom C: Nama PCL(2), K: Kec(10), L: Desa(11), M: SLS(12), N: Nama KRT(13)
+      if (data[i][2] === namaPcl && data[i][10] === kec && data[i][11] === desa && 
+          data[i][12].toString() === sls.toString() && data[i][13] === namaKrt) {
+        let originalFotoUrl = data[i][22]; // Kolom W
+        let displayFotoUrl = "";
+
+        // Logika konversi URL agar bisa tampil di Preview
+        if (originalFotoUrl && originalFotoUrl.includes("drive.google.com")) {
+          // Mengambil ID file dari URL dan mengubahnya menjadi link thumbnail
+          var fileId = originalFotoUrl.match(/[-\w]{25,}/);
+          if (fileId) {
+            displayFotoUrl = "https://drive.google.com/thumbnail?id=" + fileId[0] + "&sz=w600";
+          }
+        }
+
+        return {
+          rowIndex: i + 1,
+          emailManual: data[i][1],
+          pendidikanKRT: data[i][14],
+          pekerjaanKRT: data[i][15],
+          jumlahART: data[i][16],
+          pendapatan: data[i][17],
+          makan: data[i][18],
+          nonMakan: data[i][19],
+          bansos: data[i][21],
+          fotoUrl: displayFotoUrl ,
+          catatan: data[i][23]
+        };
+      }
+    }
+    return null;
+  } catch (e) { return null; }
+}
+
+/**
+ * Memperbarui data yang sudah ada (kecuali lokasi dan waktu awal)
+ */
+function updateForm(data) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('RESPON_SURVEI');
+    const row = data.rowIndex;
+    const totalPengeluaran = Number(data.makan) + Number(data.nonMakan); 
+    const waktuSekarang = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
+
+    sheet.getRange(row, 27).setValue(waktuSekarang);  
+
+    if (data.fotoFile) {
+      const folder = DriveApp.getFolderById('1u7s5qucSwS2t6qQKDAELrSmgfF3Ow6_l');
+      const contentType = data.fotoFile.substring(5, data.fotoFile.indexOf(';'));
+      const bytes = Utilities.base64Decode(data.fotoFile.split(',')[1]);
+      const blob = Utilities.newBlob(bytes, contentType, "Update_Foto_" + data.rowIndex + ".jpg");
+      const file = folder.createFile(blob);
+      //file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      
+      // Timpa kolom foto lama (Kolom W atau urutan ke-23)
+      sheet.getRange(row, 23).setValue(file.getUrl());
+    }
+    // 2. UPDATE DATA LAINNYA (Menimpa kolom yang ada)
+    // Urutan kolom disesuaikan dengan struktur appendRow di submitForm Anda
+    sheet.getRange(row, 15).setValue(data.pendidikanKRT); // Kolom O
+    sheet.getRange(row, 16).setValue(data.pekerjaanKRT);  // Kolom P
+    sheet.getRange(row, 17).setValue(data.jumlahART);    // Kolom Q
+    sheet.getRange(row, 18).setValue(data.pendapatan);   // Kolom R
+    sheet.getRange(row, 19).setValue(data.makan);        // Kolom S
+    sheet.getRange(row, 20).setValue(data.nonMakan);     // Kolom T
+    sheet.getRange(row, 21).setValue(totalPengeluaran);  // Kolom U
+    sheet.getRange(row, 22).clearContent(); 
+    sheet.getRange(row, 22).setValue(data.bansos);
+    sheet.getRange(row, 24).setValue(data.catatan);
+
+    
+
+    return { status: 'success', message: 'Data berhasil diperbarui!' };
+  } catch (e) {
+    return { status: 'error', message: 'Gagal update: ' + e.message };
+  }
+}
+
+/**
+ * Fungsi utilitas GPS & Validasi
+ */
+function getDistanceInMeters(lat1, lon1, lat2, lon2) {
+  const R = 6371000; 
+  const dLat = (lat2 - lat1) * Math.PI / 180; 
+  const dLon = (lon2 - lon1) * Math.PI / 180; 
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2); 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+  return R * c; 
+}
+
+function isLocationValid(lat, lng, namaKecamatan) {
+  if (lat === 0 || lng === 0) return false; 
+  const centerKec = {
+    "BALEN": { lat: -7.1856, lng: 111.9478, radius: 0.07 },
+    "BAURENO": { lat: -7.1255, lng: 112.1052, radius: 0.08 },
+    "BOJONEGORO": { lat: -7.1509, lng: 111.8817, radius: 0.05 },
+    "BUBULAN": { lat: -7.3261, lng: 111.8083, radius: 0.09 },
+    "DANDER": { lat: -7.2185, lng: 111.8687, radius: 0.08 },
+    "GONDANG": { lat: -7.3982, lng: 111.8482, radius: 0.10 },
+    "KALITIDU": { lat: -7.1437, lng: 111.7891, radius: 0.07 },
+    "KANOR": { lat: -7.1073, lng: 112.0219, radius: 0.08 },
+    "KAPAS": { lat: -7.1812, lng: 111.9123, radius: 0.06 },
+    "KASIMAN": { lat: -7.1443, lng: 111.6141, radius: 0.07 },
+    "KEDEWAN": { lat: -7.0365, lng: 111.6390, radius: 0.08 },
+    "KEDUNGADEM": { lat: -7.3032, lng: 112.0468, radius: 0.10 },
+    "KEPOH BARU": { lat: -7.2237, lng: 112.0919, radius: 0.09 },
+    "MALO": { lat: -7.1076, lng: 111.7317, radius: 0.08 },
+    "MARGOMULYO": { lat: -7.3575, lng: 111.4988, radius: 0.12 },
+    "NGASEM": { lat: -7.2452, lng: 111.7615, radius: 0.10 },
+    "NGRAHO": { lat: -7.2480, lng: 111.5342, radius: 0.08 }, // Ngraho
+    "PADANGAN": { lat: -7.1565, lng: 111.6197, radius: 0.06 },
+    "PURWOSARI": { lat: -7.1801, lng: 111.6624, radius: 0.07 },
+    "SEKAR": { lat: -7.4085, lng: 111.7426, radius: 0.10 },
+    "SUGIHWARAS": { lat: -7.3025, lng: 111.9543, radius: 0.09 },
+    "SUKOSEWU": { lat: -7.2639, lng: 111.9228, radius: 0.08 },
+    "SUMBERREJO": { lat: -7.1942, lng: 112.0163, radius: 0.08 },
+    "TAMBAKREJO": { lat: -7.2709, lng: 111.6214, radius: 0.15 },
+    "TEMAYANG": { lat: -7.3355, lng: 111.9138, radius: 0.09 },
+    "TRUCUK": { lat: -7.1178, lng: 111.8460, radius: 0.06 },
+    "DEFAULT": { lat: -7.1509, lng: 111.8817, radius: 0.30 } 
+};
+
+  const center = centerKec[namaKecamatan] || centerKec["DEFAULT"]; 
+  const distance = getDistanceInMeters(lat, lng, center.lat, center.lng); 
+  return distance <= center.radius; 
+}
+
+function getDashboardData() {
+  const ss =  SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('RESPON_SURVEI');
+  const lastRow = sheet.getLastRow();
+  
+  // Ambil Master Petugas dengan Target Dinamis
+  const allStaff = getStaffList(); 
+  const totalTargetGlobal = allStaff.reduce((sum, s) => sum + s.target, 0);
+
+  if (lastRow < 2) return { summary: { total: 0, persen: 0 }, rawTable: [], staffTrack: allStaff, staffStatus: allStaff };
+
+  const data = sheet.getRange(2, 1, lastRow - 1, 26).getValues(); 
+  const stats = {
+    summary: { total: data.length, aktif: 0, avgDurasi: 0, persen: 0,relevan: 0, ditolak: 0, belumVerif: 0 },
+    verifChart: { relevan: 0, ditolak: 0, belum: 0 },
+    kecStats: {},
+    hourly: Array(24).fill(0),
+    daily: {},
+    rawTable: [], 
+    allResponses: [], 
+    staffTrack: [], 
+    staffStatus: [] 
+  };
+
+  let rekapSubmit = {}; 
+  let rekapDurasi = {}; 
+  let rekapHarian = {}; 
+  let petugasSet = new Set();
+  let totalDurasi = 0;
+
+  data.forEach((row, index) => {
+    if (!row[0]) return;
+    
+    const ts = new Date(row[0]);
+    // Ambil waktu mulai dan selesai wawancara
+    const tsStart = row[6] ? new Date(row[6]) : null;
+    const tsEnd   = row[7] ? new Date(row[7]) : ts;
+
+    const nama = row[2]; 
+    const lat = formatCoord(row[4]); 
+    const lng = formatCoord(row[5]); 
+    const m = Number(row[8]) || 0;
+    const s = Number(row[9]) || 0;
+    const durasi = (m * 60) + s;
+    const kecTugas = row[10];
+    const tglKey = Utilities.formatDate(ts, "GMT+7", "yyyy-MM-dd");
+
+    if(nama) {
+      petugasSet.add(nama);
+      totalDurasi += durasi;
+      rekapSubmit[nama] = (rekapSubmit[nama] || 0) + 1;
+      rekapDurasi[nama] = (rekapDurasi[nama] || 0) + durasi;
+      
+      if(!rekapHarian[nama]) rekapHarian[nama] = {};
+      rekapHarian[nama][tglKey] = (rekapHarian[nama][tglKey] || 0) + 1;
+
+      const statusVerif = row[25]; // Kolom Z
+    if (statusVerif === "RELEVAN") {
+      stats.verifChart.relevan++;
+      stats.summary.relevan++;
+    } else if (statusVerif === "DITOLAK") {
+      stats.verifChart.ditolak++;
+      stats.summary.ditolak++;
+    } else {
+      stats.verifChart.belum++;
+      stats.summary.belumVerif++;
+    }
+
+      const dataPoint = {
+  // --- Informasi Waktu (BARU & LENGKAP) ---
+  timestamp:   Utilities.formatDate(ts,     "GMT+7", "dd/MM HH:mm"),
+  tanggal:     Utilities.formatDate(ts,     "GMT+7", "dd/MM/yyyy"),
+  hari:        ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"][ts.getDay()],
+  jamMulai:    tsStart ? Utilities.formatDate(tsStart, "GMT+7", "HH:mm:ss") : "-",
+  jamSelesai:  tsEnd   ? Utilities.formatDate(tsEnd,   "GMT+7", "HH:mm:ss") : "-",
+  jamInput:    Utilities.formatDate(ts,     "GMT+7", "HH:mm"),
+
+  // --- Informasi Petugas ---
+  nama:        nama,
+  namaPcl:     nama,
+  emailPcl:    row[1]  || "-",
+  idPcl:       row[3]  || "-",
+
+  // --- Informasi Wilayah ---
+  kec:         kecTugas,
+  desa:        row[11] || "-",
+  sls:         row[12] || "-",
+
+  // --- Informasi Responden (KRT) ---
+  krt:         row[13] || "-",
+  pendidikan:  row[14] || "-",
+  pekerjaan:   row[15] || "-",
+  jumlahART:   Number(row[16]) || 0,
+
+  // --- Informasi Ekonomi ---
+  pendapatan:  parseFloat(String(row[17]).replace(/[^0-9.-]+/g,"")) || 0,
+  pengeluaran: parseFloat(String(row[20]).replace(/[^0-9.-]+/g,"")) || 0,
+  bansos:      row[21] || "-",
+  catatan:     row[23] || "",
+
+  // --- Metadata ---
+  durasi:      durasi,
+  lat:         lat,
+  lng:         lng,
+  isValid:     isLocationValid(lat, lng, kecTugas),
+  foto:        formatDriveLink(row[22]),
+  rowNum:      index + 2,
+  status:      statusVerif
+};
+      stats.rawTable.push(dataPoint);
+      stats.allResponses.push(dataPoint);
+
+      stats.hourly[ts.getHours()]++;
+      stats.daily[tglKey] = (stats.daily[tglKey] || 0) + 1;
+      if (kecTugas) stats.kecStats[kecTugas] = (stats.kecStats[kecTugas] || 0) + 1;
+    }
+  });
+
+  
+  
+
+  const resultStaff = allStaff.map(s => {
+    const real = rekapSubmit[s.pcl] || 0;
+    const targetPetugas = s.target; 
+    const namaAman = s.pcl.replace(/'/g, "\\'");
+    let statusKet = real === 0 ? "Belum Mulai" : (real >= targetPetugas ? "Selesai" : "Proses");
+
+    return {
+      ...s,
+      nama: s.pcl,
+      namaAman: namaAman,
+      realisasi: real,
+      isAktif: real > 0,
+      avgDurasi: real > 0 ? (rekapDurasi[s.pcl] / real).toFixed(0) : 0,
+      persen: targetPetugas > 0 ? Math.round((real / targetPetugas) * 100) : 0,
+      status: statusKet,
+      dataHarian: rekapHarian[s.pcl] || {}
+    };
+  });
+
+  stats.staffTrack = resultStaff;
+  stats.staffStatus = resultStaff;
+
+  const dailyDataArray = Object.keys(stats.daily).map(key => ({
+    tgl: key, objDate: new Date(key), jumlah: stats.daily[key]
+  })).sort((a, b) => a.objDate - b.objDate);
+
+  stats.dailyLabels = dailyDataArray.map(item => item.tgl);
+  stats.dailyValues = dailyDataArray.map(item => item.jumlah);
+
+  stats.summary.aktif = petugasSet.size;
+  // Tambahkan ini:
+  stats.summary.belumAktif = allStaff.length - petugasSet.size;
+  
+  // Ambil daftar nama untuk modal/popup
+  stats.listNamaAktif = resultStaff.filter(s => s.isAktif).map(s => s.pcl);
+  stats.listNamaBelumAktif = resultStaff.filter(s => !s.isAktif).map(s => s.pcl);
+  
+  stats.summary.avgDurasi = data.length > 0 ? (totalDurasi / data.length).toFixed(0) : 0;
+  stats.summary.persen = totalTargetGlobal > 0 ? ((data.length / totalTargetGlobal) * 100).toFixed(1) : 0;
+  stats.totalTarget = totalTargetGlobal;
+
+  return stats;
+}
+
+function getStaffList() {
+  const ss =  SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('DATA_PETUGAS');
+  if (!sheet) return [];
+
+  const lastRow = sheet.getLastRow();
+  const data = sheet.getRange(1, 1, lastRow, 7).getValues();
+  const staffMap = {}; 
+  let lastPML = "";
+  let lastPCL = "";
+
+  for (let i = 1; i < data.length; i++) {
+    let pmlRaw = data[i][1] ? data[i][1].toString().trim() : ""; 
+    let pclRaw = data[i][3] ? data[i][3].toString().trim() : ""; 
+    let kec = data[i][4] ? data[i][4].toString().trim() : "";
+    let desa = data[i][5] ? data[i][5].toString().trim() : "";
+    let sls = data[i][6] ? data[i][6].toString().trim() : "";
+
+    if (pmlRaw !== "") lastPML = pmlRaw;
+    if (pclRaw !== "") lastPCL = pclRaw;
+    
+    let pml = lastPML;
+    let pcl = lastPCL;
+
+    if (pcl !== "" && sls !== "") {
+      if (!staffMap[pcl]) {
+        staffMap[pcl] = { pml: pml, pcl: pcl, countSls: 0, detail: [] };
+      }
+      staffMap[pcl].countSls += 1; // Menghitung jumlah baris SLS
+      staffMap[pcl].detail.push({ kec: kec, desa: desa, sls: sls });
+    }
+  }
+
+  return Object.values(staffMap).map(s => ({
+    pml: s.pml,
+    pcl: s.pcl,
+    target: s.countSls * 10, // 1 baris SLS = 10 Target
+    detail: s.detail
+  }));
+}
+
+function formatCoord(val) {
+  if (!val || val === "") return 0;
+  let str = val.toString().replace(/[^0-9-]/g, '');
+  if (str.startsWith('-')) {
+    let clean = str.replace(/-/g, '');
+    return parseFloat('-' + clean.substring(0, 1) + '.' + clean.substring(1));
+  } else {
+    return parseFloat(str.substring(0, 3) + '.' + str.substring(3));
+  }
+}
+
+
+function formatDriveLink(url) {
+  if (!url) return '';
+  var fileId = "";
+  if (url.indexOf('id=') > -1) fileId = url.split('id=')[1].split('&')[0];
+  else if (url.indexOf('/d/') > -1) fileId = url.split('/d/')[1].split('/')[0];
+  return fileId !== "" ? "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w400" : url;
+}
+
+function updateValidasiAdmin(rowNum, status) {
+  const ss =  SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('RESPON_SURVEI');
+  // Menulis status ke Baris yang dikirim, Kolom 26 (Z)
+  sheet.getRange(rowNum, 26).setValue(status);
+  return "Sukses";
+}
+function checkLogin(email, password) { 
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet(); 
+    const sheet = ss.getSheetByName('USER_AKSES'); 
+    const data = sheet.getDataRange().getValues(); 
+    
+    for (let i = 1; i < data.length; i++) { 
+      if (data[i][0] === email && String(data[i][1]) === String(password)) { 
+        return { success: true, message: "Login Berhasil!" }; 
+      }
+    }
+    return { success: false, message: "Email atau Password Admin salah!" }; 
+  } catch(e) {
+    return { success: false, message: "Kesalahan sistem: " + e.message };
+  }
+}
